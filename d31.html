@@ -22,16 +22,6 @@ line {
 <script src='d3.v3.min.js'></script>
 <script>
 
-var data = [
-    {
-        w: 50,
-        h: 50,
-        x: 100,
-        y: 100,
-        l: 'Test Component'
-    }
-]
-
 var width = window.innerWidth,
     height = window.innerHeight;
 
@@ -51,7 +41,7 @@ var drag = d3.behavior.drag()
         d.x = d3.event.x;
         d.y = d3.event.y;
         d3.select(this)
-            .attr('transform', 'translate(' + d3.event.x + ',' + d3.event.y + ')');
+            .attr('transform', 'translate(' + d.x + ',' + d.y + ')');
     })
     .on('dragend', function(d) {
         d3.select(this).classed('dragging', false);
@@ -60,45 +50,48 @@ var drag = d3.behavior.drag()
 var svg = d3.select('body').append('svg')
         .attr('width', width)
         .attr('height', height)
-    .append('g')
-        .call(zoom),
+        .call(zoom)
+        .append('g'),
     container = svg.append('g');
 
-/*container.append('rect')
-    .data([{
-        x: 100,
-        y: 200
-    }])
-    .attr('class', 'component')
-    .attr('width', 50)
-    .attr('height', 50)
-    .attr('x', function(d) { return d.x; })
-    .attr('y', function(d) { return d.y; })
-    .attr('rx', 5)
-    .attr('ry', 5)
-    .call(drag);*/
+function addComponent(data) {
+    var bar = container.append('g')
+        .data([data])
+        .attr('x', function(d) { return d.x; })
+        .attr('y', function(d) { return d.y; })
+        .call(drag);
 
-var bar = container.append('g')
-    .data(data)
-    .attr('x', function(d) { return d.x; })
-    .attr('y', function(d) { return d.y; })
-    .call(drag);
+    bar.append('rect')
+        .attr('class', 'component')
+        .attr('width', function(d) { return d.w; })
+        .attr('height', function(d) { return d.h; })
+        .attr('x', function(d) { return d.x; })
+        .attr('y', function(d) { return d.y; })
+        .attr('rx', 5)
+        .attr('ry', 5);
 
-bar.append('rect')
-    .attr('class', 'component')
-    .attr('width', function(d) { return d.w; })
-    .attr('height', function(d) { return d.h; })
-    .attr('x', function(d) { return d.x; })
-    .attr('y', function(d) { return d.y; })
-    .attr('rx', 5)
-    .attr('ry', 5);
+    bar.append('text')
+        .attr('width', function(d) { return d.w; })
+        .attr('height', function(d) { return d.h; })
+        .attr('x', function(d) { return d.x + (d.w / 2); })
+        .attr('y', function(d) { return d.y + 10; })
+        .attr('text-anchor', 'middle')
+        .text(function(d) { return d.l; });
+}
 
-bar.append('text')
-    .attr('width', function(d) { return d.w; })
-    .attr('height', function(d) { return d.h; })
-    .attr('x', function(d) { return d.x + (d.w / 2); })
-    .attr('y', function(d) { return d.y + 10; })
-    .attr('text-anchor', 'middle')
-    .text(function(d) { return d.l; });
+addComponent({
+    w: 50,
+    h: 50,
+    x: 100,
+    y: 100,
+    l: 'Test Component 1'
+});
 
+addComponent({
+    w: 50,
+    h: 50,
+    x: 200,
+    y: 100,
+    l: 'Test Component 2'
+});
 </script>
