@@ -1,3 +1,9 @@
+// Add fn to d3.
+d3.selection.prototype.moveToFront = function() {
+  return this.each(function(){
+    this.parentNode.appendChild(this);
+  });
+};
 
 // Because d3 doesn't do event delagation... dafaq.
 var matchesSelector = (function() {

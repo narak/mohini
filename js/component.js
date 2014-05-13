@@ -65,6 +65,11 @@ function addComponent(data) {
             .call(connectorPoint)
             .call(drag);
 
+    group
+            .on('click.moveToFront', function() {
+                group.moveToFront();
+            });
+
     data.el = {
         box: group.append('rect')
             .attr('class', 'component')
