@@ -3,17 +3,39 @@ var isPoint = function(el) {
     },
 
     connector = null,
-    connectorMap = {};
+    connectorMap = {},
+    body = d3.select(document.body);
 
-function startsAt(opts) {
-    updateAt.call(this, '_startsAt', 'source', opts);
+function Connector() {
+    var uuid = generateUUID('conn'),
+        self = this,
+        connector;
+
+    connectorMap[uuid] = self;
+
+    self._diagonal = d3.svg.diagonal();
+
+    // Start connector.
+    self.el = connectorContainer.append('path')
+        .attr('class', 'connector')
+        .attr('uuid', uuid);
+
+    body.on('mousemove.connectorPoint', function() {
+        self.endsAt({ coords: translateNScale(d3.event) })
+    });
+
+    return self;
 }
 
-function endsAt(opts) {
-    updateAt.call(this, '_endsAt', 'target', opts);
-}
+Connector.prototype.startsAt = function(opts) {
+    this.updateAt.call(this, '_startsAt', 'source', opts);
+};
 
-function updateAt(thisProp, diagProp, opts) {
+Connector.prototype.endsAt = function(opts) {
+    this.updateAt.call(this, '_endsAt', 'target', opts);
+};
+
+Connector.prototype.updateAt = function(thisProp, diagProp, opts) {
     opts = opts || {};
 
     var coords;
@@ -45,31 +67,13 @@ function updateAt(thisProp, diagProp, opts) {
     });
 
     if (opts.render === undefined || opts.render) {
-        this.el.attr('d', this._diagonal);
+        this.render();
     }
-}
+};
 
-function addConnector() {
-    var uuid = generateUUID('conn'),
-        connector;
-
-    connectorMap[uuid] = connector = {
-        _diagonal: d3.svg.diagonal(),
-        startsAt: startsAt,
-        endsAt: endsAt
-    };
-
-    // Start connector.
-    connector.el = connectorContainer.append('path')
-        .attr('class', 'connector')
-        .attr('uuid', uuid);
-
-    d3.select('body').on('mousemove.connectorPoint', function() {
-        connector.endsAt({ coords: translateNScale(d3.event) })
-    });
-
-    return connector;
-}
+Connector.prototype.render = function(render) {
+    this.el.attr('d', this._diagonal);
+};
 
 function connectorPoint(group) {
     group.on('mousedown.connectorPoint', function() {
@@ -84,7 +88,7 @@ function connectorPoint(group) {
                 component = getComponent(compUUID);
 
             if (!connector) {
-                connector = addConnector();
+                connector = new Connector();
                 connector.startsAt({ component: component, render: false });
                 component.connectors.startsAt.push(connector);
             } else {
