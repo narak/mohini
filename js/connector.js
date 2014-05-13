@@ -3,34 +3,21 @@ var isPoint = function(el) {
     },
 
     line = null,
-    lineMap = {};
+    lineMap = {},
 
-function startsAt(component, coords) {
-    if (component) {
-        this._startComponent = component;
-        coords = component.getEndPointCoords();
-    }
-    if (!coords) {
-        coords = this._startComponent.getEndPointCoords();
-    }
+    diagonal = d3.svg.diagonal();
 
-    if (!(coords instanceof Array) || coords.length === 0) {
-        console.warn('Trying to start line at an invalid value.')
-        return;
-    }
+function startsAt(opts) {
+    var coords;
 
-    this.el
-        .attr('x1', coords[0])
-        .attr('y1', coords[1])
-}
+    this._startsAt = this._startsAt || {};
 
-function endsAt(component, coords) {
-    if (component) {
-        this._endComponent = component;
-        coords = component.getEndPointCoords();
-    }
-    if (!coords) {
-        coords = this._endComponent.getEndPointCoords();
+    if (opts.component) {
+        this._startsAt.component = opts.component;
+        coords = this._startsAt.coords = opts.component.getEndPointCoords();
+    } else if (opts.coords) {
+        coords = this._startsAt.coords = opts.coords;
+        delete this._startsAt.component;
     }
 
     if (!coords || !(coords instanceof Array) || coords.length === 0) {
@@ -38,9 +25,42 @@ function endsAt(component, coords) {
         return;
     }
 
-    this.el
-        .attr('x2', coords[0])
-        .attr('y2', coords[1])
+    this._diagonal = this._diagonal.source({
+        x: coords[0],
+        y: coords[1]
+    });
+
+    if (opts.render === undefined || opts.render) {
+        this.el.attr('d', this._diagonal);
+    }
+}
+
+function endsAt(opts) {
+    var coords;
+
+    this._endsAt = this._endsAt || {};
+
+    if (opts.component) {
+        this._endsAt.component = opts.component;
+        coords = this._endsAt.coords = opts.component.getEndPointCoords();
+    } else if (opts.coords) {
+        coords = this._endsAt.coords = opts.coords;
+        delete this._endsAt.component;
+    }
+
+    if (!coords || !(coords instanceof Array) || coords.length === 0) {
+        console.warn('Trying to start line at an invalid value.')
+        return;
+    }
+
+    this._diagonal = this._diagonal.target({
+        x: coords[0],
+        y: coords[1]
+    });
+
+    if (opts.render === undefined || opts.render) {
+        this.el.attr('d', this._diagonal);
+    }
 }
 
 function connectorPoint(group) {
@@ -55,31 +75,69 @@ function connectorPoint(group) {
             var tns = translateNScale(d3.event),
                 compUUID = d3.select(this).attr('uuid'),
                 component = getComponent(compUUID),
+                ctns = component.getEndPointCoords(),
                 uuid;
 
             if (!line) {
                 uuid = generateUUID('conn');
-                line = { startsAt: startsAt, endsAt: endsAt };
+                lineMap[uuid] = line = {
+                    _diagonal: diagonal,
+                    startsAt: startsAt,
+                    endsAt: endsAt
+                };
 
                 // Start connector.
-                line.el = lineContainer.append('line')
+                line.el = lineContainer.append('path')
+                    .attr('class', 'connector')
                     .attr('uuid', uuid);
 
                 d3.select('body').on('mousemove.connectorstart', function() {
-                    line.endsAt(null, translateNScale(d3.event))
+                    line.endsAt({ coords: translateNScale(d3.event) })
                 });
 
-                line.startsAt(component);
-                line.endsAt(component);
+                line.startsAt({ component: component, render: false });
                 component.connectors.startsAt.push(line);
-                lineMap[uuid] = line;
             } else {
                 // End connector.
-                line.endsAt(component);
+                line.endsAt({ component: component });
                 component.connectors.endsAt.push(line);
 
                 d3.select('body').on('mousemove.connectorstart', null);
                 line = null;
             }
         });
+}
+
+function genLinks() {
+    var links = [],
+        sctns, ectns, line;
+
+    for (var uuid in lineMap) {
+        if (!lineMap.hasOwnProperty(uuid)) continue;
+
+        line = lineMap[uuid];
+        sctns = line._startComponent.getEndPointCoords();
+        ectns = line._endComponent.getEndPointCoords();
+
+        links.push({
+            source: {
+                x: sctns[0],
+                y: sctns[1]
+            },
+            target: {
+                x: ectns[0],
+                y: ectns[1]
+            }
+        });
+    }
+
+    console.log(linkContainer);
+    linkContainer
+        .selectAll(".link").remove()
+    linkContainer
+        .selectAll(".link")
+        .data(links)
+        .enter().append("path")
+        .attr("class", "link")
+        .attr("d", diagonal);
 }
