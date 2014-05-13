@@ -6,68 +6,40 @@ var isPoint = function(el) {
     connectorMap = {};
 
 function startsAt(opts) {
-    opts = opts || {};
-
-    var coords;
-
-    this._startsAt = this._startsAt || {};
-
-    if (opts.component) {
-        this._startsAt.component = opts.component;
-        coords = this._startsAt.coords = opts.component.getEndPointCoords();
-    } else if (opts.coords) {
-        coords = this._startsAt.coords = opts.coords;
-        delete this._startsAt.component;
-    } else if (opts.update && this._startsAt.coords) {
-        if (this._startsAt.component) {
-            coords = this._startsAt.coords = this._startsAt.component.getEndPointCoords();
-        } else {
-            coords = this._startsAt.coords;
-        }
-    }
-
-    if (!coords || !(coords instanceof Array) || coords.length === 0) {
-        console.warn('Trying to start connector at an invalid value.')
-        return;
-    }
-
-    this._diagonal = this._diagonal.source({
-        x: coords[0],
-        y: coords[1]
-    });
-
-    if (opts.render === undefined || opts.render) {
-        this.el.attr('d', this._diagonal);
-    }
+    updateAt.call(this, '_startsAt', 'source', opts);
 }
 
 function endsAt(opts) {
+    updateAt.call(this, '_endsAt', 'target', opts);
+}
+
+function updateAt(thisProp, diagProp, opts) {
     opts = opts || {};
 
     var coords;
 
-    this._endsAt = this._endsAt || {};
+    this[thisProp] = this[thisProp] || {};
 
     if (opts.component) {
-        this._endsAt.component = opts.component;
-        coords = this._endsAt.coords = opts.component.getEndPointCoords();
+        this[thisProp].component = opts.component;
+        coords = this[thisProp].coords = opts.component.getEndPointCoords();
     } else if (opts.coords) {
-        coords = this._endsAt.coords = opts.coords;
-        delete this._endsAt.component;
-    } else if (opts.update && this._endsAt.coords) {
-        if (this._endsAt.component) {
-            coords = this._endsAt.coords = this._endsAt.component.getEndPointCoords();
+        coords = this[thisProp].coords = opts.coords;
+        delete this[thisProp].component;
+    } else if (opts.update && this[thisProp].coords) {
+        if (this[thisProp].component) {
+            coords = this[thisProp].coords = this[thisProp].component.getEndPointCoords();
         } else {
-            coords = this._endsAt.coords;
+            coords = this[thisProp].coords;
         }
     }
 
     if (!coords || !(coords instanceof Array) || coords.length === 0) {
-        console.warn('Trying to start connector at an invalid value.')
+        console.warn('Trying to create connector with an invalid value.')
         return;
     }
 
-    this._diagonal = this._diagonal.target({
+    this._diagonal = this._diagonal[diagProp]({
         x: coords[0],
         y: coords[1]
     });
@@ -78,12 +50,12 @@ function endsAt(opts) {
 }
 
 function connectorPoint(group) {
-    group.on('mousedown', function() {
+    group.on('mousedown.connectorPoint', function() {
             if (!isPoint(d3.event.target)) return;
             // Prevent drag.
             d3.event.stopPropagation();
         })
-        .on('click', function(d) {
+        .on('click.connectorPoint', function(d) {
             if (!isPoint(d3.event.target)) return;
 
             var tns = translateNScale(d3.event),
@@ -105,7 +77,7 @@ function connectorPoint(group) {
                     .attr('class', 'connector')
                     .attr('uuid', uuid);
 
-                d3.select('body').on('mousemove.connectorstart', function() {
+                d3.select('body').on('mousemove.connectorPoint', function() {
                     connector.endsAt({ coords: translateNScale(d3.event) })
                 });
 
@@ -116,7 +88,7 @@ function connectorPoint(group) {
                 connector.endsAt({ component: component });
                 component.connectors.endsAt.push(connector);
 
-                d3.select('body').on('mousemove.connectorstart', null);
+                d3.select('body').on('mousemove.connectorPoint', null);
                 connector = null;
             }
         });
