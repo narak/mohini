@@ -1,15 +1,13 @@
-var isPoint = function(el) {
-        return matchesSelector(el, '.connector-point');
-    },
+function isPoint(el) {
+    return matchesSelector(el, '.connector-point');
+};
 
-    connector = null,
-    connectorMap = {},
+var connectorMap = {},
     body = d3.select(document.body);
 
 function Connector() {
     var uuid = generateUUID('conn'),
-        self = this,
-        connector;
+        self = this;
 
     connectorMap[uuid] = self;
 
@@ -28,11 +26,11 @@ function Connector() {
 }
 
 Connector.prototype.startsAt = function(opts) {
-    this.updateAt.call(this, '_startsAt', 'source', opts);
+    return this.updateAt.call(this, '_startsAt', 'source', opts);
 };
 
 Connector.prototype.endsAt = function(opts) {
-    this.updateAt.call(this, '_endsAt', 'target', opts);
+    return this.updateAt.call(this, '_endsAt', 'target', opts);
 };
 
 Connector.prototype.updateAt = function(thisProp, diagProp, opts) {
@@ -69,12 +67,15 @@ Connector.prototype.updateAt = function(thisProp, diagProp, opts) {
     if (opts.render === undefined || opts.render) {
         this.render();
     }
+    return this;
 };
 
 Connector.prototype.render = function(render) {
     this.el.attr('d', this._diagonal);
+    return this;
 };
 
+var connector;
 function connectorPoint(group) {
     group.on('mousedown.connectorPoint', function() {
             if (!isPoint(d3.event.target)) return;
@@ -84,12 +85,11 @@ function connectorPoint(group) {
         .on('click.connectorPoint', function(d) {
             if (!isPoint(d3.event.target)) return;
 
-            var compUUID = d3.select(this).attr('uuid'),
-                component = getComponent(compUUID);
+            var component = getComponent(d3.select(this).attr('uuid'));
 
             if (!connector) {
-                connector = new Connector();
-                connector.startsAt({ component: component, render: false });
+                connector = new Connector()
+                    .startsAt({ component: component, render: false });
                 component.connectors.startsAt.push(connector);
             } else {
                 // End connector.
