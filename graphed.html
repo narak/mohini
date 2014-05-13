@@ -9,6 +9,11 @@ html, body {
 
 line {
     stroke: #000;
+    stroke-width: 2px;
+}
+line:hover {
+    stroke: #aaa;
+    stroke-width: 5px;
 }
 
 .dragging .component,
@@ -37,180 +42,25 @@ line {
 </style>
 <body>
 <script src='js/d3.v3.min.js'></script>
+<script src='js/mohini.js'></script>
+<script src='js/component.js'></script>
+<script src='js/connector.js'></script>
 <script>
 
-var defaultZoom = 1,
-    zoom = d3.behavior.zoom()
-    .scaleExtent([.1, 10])
-    .on('zoom', function() {
-        container.attr('transform', 'translate(' + d3.event.translate + ') scale(' + d3.event.scale + ')');
-    });
-
-var drag = d3.behavior.drag()
-    .origin(function(d) { return d.scaled; })
-    .on('dragstart', function(d) {
-        d3.event.sourceEvent.stopPropagation();
-        d3.select(this).classed('dragging', true);
-    })
-    .on('drag', function(d) {
-        var key, el;
-
-        d.scaled.x = d3.event.x;
-        d.scaled.y = d3.event.y;
-
-        // for (key in d.el) {
-        //     if (!d.el.hasOwnProperty(key)) continue;
-
-        //     el = d.el[key];
-        //     el.attr('x', d.scaled.x);
-        //     el.attr('y', d.scaled.y);
-        // }
-
-        // If you transform the group, all the group children take their
-        // positions in relation to the group's position.
-        d.el.group.attr('transform', 'translate(' + d.scaled.x + ', ' + d.scaled.y + ')');
-    })
-    .on('dragend', function(d) {
-        d3.select(this).classed('dragging', false);
-    });
-
-var connectorPoint;
-(function() {
-    var line = null,
-
-        // The coordinates need to be translated and scaled because, presumably,
-        // the x, y coords are coming in relation to the window because it is a
-        // mouse event. We need to scale/translate this to our svg.
-        translateNScale = function(evt) {
-            var translate = zoom.translate(),
-                scale = zoom.scale(),
-                x, y;
-
-            x = (evt.x - translate[0]) / scale;
-            y = (evt.y - translate[1]) / scale;
-
-            return [x, y];
-        };
-
-    connectorPoint = function(point) {
-        point
-            .on('mousedown', function() {
-                // Prevent drag.
-                d3.event.stopPropagation();
-            })
-            .on('click', function(d) {
-                var tns = translateNScale(d3.event);
-
-                if (!line) {
-                    // Start connector.
-                    line = lineContainer.append('line')
-                        .style('stroke-width', 1 + 'px')
-                        .attr('x1', tns[0])
-                        .attr('y1', tns[1])
-                        .attr('x2', tns[0] - 1)
-                        .attr('y2', tns[1] - 1);
-
-                    d3.select('body').on('mousemove.connectorstart', function() {
-                        tns = translateNScale(d3.event);
-                        line.attr('x2', tns[0])
-                            .attr('y2', tns[1]);
-                    });
-                } else {
-                    // End connector.
-                    tns = translateNScale(d3.event);
-                    line.attr('x2', tns[0])
-                        .attr('y2', tns[1]);
-                    line = null;
-                    d3.select('body').on('mousemove.connectorstart', null);
-                }
-            });
-    };
-})();
-
-var width = window.innerWidth,
-    height = window.innerHeight - 5,
-    svg = d3.select('body').append('svg')
-        .attr('width', width)
-        .attr('height', height)
-        .call(zoom),
-    container = svg.append('g'),
-    lineContainer = container.append('g'),
-    compContainer = container.append('g');
-
-// Set the initial visual zoom.
-container.attr('transform', 'translate(0,0)scale(' + defaultZoom + ')');
-// This sets the internal values for d3 so it doesn't jump when you do an actual zoom.
-zoom.translate([0,0]).scale(defaultZoom);
-
-function scaleToInitialZoom(val) {
-    return (val / defaultZoom).toFixed(3);
-}
-
-function addComponent(data) {
-    data.scaled = {};
-    data.scaled.x = scaleToInitialZoom(data.x);
-    data.scaled.y = scaleToInitialZoom(data.y);
-    data.scaled.w = scaleToInitialZoom(data.w);
-    data.scaled.h = scaleToInitialZoom(data.h);
-    data.scaled.r = scaleToInitialZoom(data.r || 5);
-    data.scaled.fs = scaleToInitialZoom(data.fs || 10);
-    data.scaled.fdx = scaleToInitialZoom(data.w / 2);
-    data.scaled.fdy = scaleToInitialZoom(20);
-    data.scaled.cx = scaleToInitialZoom(25);
-    data.scaled.cy = scaleToInitialZoom(35);
-    data.scaled.cr = scaleToInitialZoom(data.cr || 5);
-
-    var group = compContainer.append('g')
-            .data([data])
-            .attr('x', function(d) { return d.scaled.x; })
-            .attr('y', function(d) { return d.scaled.y; })
-            .attr('transform', function(d) { return 'translate(' + d.scaled.x + ', ' + d.scaled.y + ')'; })
-            .call(drag);
-
-    data.el = {
-        rect: group.append('rect')
-            .attr('class', 'component')
-            .attr('width', function(d) { return d.scaled.w; })
-            .attr('height', function(d) { return d.scaled.h; })
-            .attr('rx', data.scaled.r)
-            .style({
-                'stroke-width': scaleToInitialZoom(1) + 'px'
-            })
-            .attr('ry', data.scaled.r),
-
-        text: group.append('text')
-            .attr('width', function(d) { return d.scaled.w; })
-            .attr('height', function(d) { return d.scaled.h; })
-            .attr('dx',  function(d) { return d.scaled.fdx; })
-            .attr('dy',  function(d) { return d.scaled.fdy; })
-            .attr('text-anchor', 'middle')
-            .style('font', data.scaled.fs + 'px ' + (data.ff || 'sans-serif'))
-            .text(function(d) { return d.l; }),
-
-        circle: group.append('circle')
-            .attr('class', 'connector-point')
-            .attr('cx', function(d) { return d.scaled.cx; })
-            .attr('cy', function(d) { return d.scaled.cy; })
-            .attr('r',  function(d) { return d.scaled.cr; })
-            .call(connectorPoint),
-
-        group: group
-    };
-
-    return data;
-}
-
 var comps = [],
-    compCount = 70,
-    perRow = 10;
+    compCount = 25,
+    perRow = 5;
 
 for (var i = 0; i < compCount; i++) {
     comps.push(addComponent({
         w: 50,
         h: 50,
-        x: 100 + ((i * 100) - (Math.floor(i / perRow) * perRow * perRow * perRow)),
+        x: 100 + ((i * 100) - (Math.floor(i / perRow) * 100 * perRow)),
         y: 100 + (Math.floor(i / perRow) * 100),
         l: 'Comp ' + i
     }));
 }
+
 </script>
+</body>
+</html>
