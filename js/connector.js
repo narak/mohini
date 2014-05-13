@@ -1,4 +1,13 @@
 // TODO: Arrow heads
+svg.append("defs").append("marker")
+    .attr("id", "arrowhead")
+    .attr("refX", 0.1) /*must be smarter way to calculate shift*/
+    .attr("refY", 2)
+    .attr("markerWidth", 2)
+    .attr("markerHeight", 4)
+    .attr("orient", "auto")
+    .append("path")
+        .attr("d", "M0,0 C45,45 45,-45 90,0"); //this is actual shape for arrowhead
 
 function isPoint(el) {
     return matchesSelector(el, '.connector-point');
@@ -18,7 +27,8 @@ function Connector() {
     // Start connector.
     self.el = connectorContainer.append('path')
         .attr('class', 'connector')
-        .attr('uuid', uuid);
+        .attr('uuid', uuid)
+        .attr("marker-end", "url(#arrowhead)");
 
     body.on('mousemove.connectorPoint', function() {
         self.endsAt({ coords: translateNScale(d3.event) })
