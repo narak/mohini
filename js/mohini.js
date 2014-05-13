@@ -47,8 +47,7 @@ var width = window.innerWidth,
         .attr('height', height)
         .call(zoom),
     container = svg.append('g'),
-    linkContainer = container.append('g'),
-    lineContainer = container.append('g'),
+    connectorContainer = container.append('g'),
     compContainer = container.append('g');
 
 function updateWindow(){

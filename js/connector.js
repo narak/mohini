@@ -2,10 +2,8 @@ var isPoint = function(el) {
         return matchesSelector(el, '.connector-point');
     },
 
-    line = null,
-    lineMap = {},
-
-    diagonal = d3.svg.diagonal();
+    connector = null,
+    connectorMap = {};
 
 function startsAt(opts) {
     opts = opts || {};
@@ -29,7 +27,7 @@ function startsAt(opts) {
     }
 
     if (!coords || !(coords instanceof Array) || coords.length === 0) {
-        console.warn('Trying to start line at an invalid value.')
+        console.warn('Trying to start connector at an invalid value.')
         return;
     }
 
@@ -65,7 +63,7 @@ function endsAt(opts) {
     }
 
     if (!coords || !(coords instanceof Array) || coords.length === 0) {
-        console.warn('Trying to start line at an invalid value.')
+        console.warn('Trying to start connector at an invalid value.')
         return;
     }
 
@@ -94,32 +92,32 @@ function connectorPoint(group) {
                 ctns = component.getEndPointCoords(),
                 uuid;
 
-            if (!line) {
+            if (!connector) {
                 uuid = generateUUID('conn');
-                lineMap[uuid] = line = {
-                    _diagonal: diagonal,
+                connectorMap[uuid] = connector = {
+                    _diagonal: d3.svg.diagonal(),
                     startsAt: startsAt,
                     endsAt: endsAt
                 };
 
                 // Start connector.
-                line.el = lineContainer.append('path')
+                connector.el = connectorContainer.append('path')
                     .attr('class', 'connector')
                     .attr('uuid', uuid);
 
                 d3.select('body').on('mousemove.connectorstart', function() {
-                    line.endsAt({ coords: translateNScale(d3.event) })
+                    connector.endsAt({ coords: translateNScale(d3.event) })
                 });
 
-                line.startsAt({ component: component, render: false });
-                component.connectors.startsAt.push(line);
+                connector.startsAt({ component: component, render: false });
+                component.connectors.startsAt.push(connector);
             } else {
                 // End connector.
-                line.endsAt({ component: component });
-                component.connectors.endsAt.push(line);
+                connector.endsAt({ component: component });
+                component.connectors.endsAt.push(connector);
 
                 d3.select('body').on('mousemove.connectorstart', null);
-                line = null;
+                connector = null;
             }
         });
 }
