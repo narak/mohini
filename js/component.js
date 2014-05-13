@@ -35,6 +35,11 @@ function getEndPointCoords() {
             y: (dim.top + dim.bottom) / 2
         });
 
+    xy.push(dim.left);
+    xy.push(dim.right);
+    xy.push(dim.top);
+    xy.push(dim.bottom);
+
     return xy;
 }
 

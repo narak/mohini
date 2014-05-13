@@ -1,3 +1,5 @@
+// TODO: Arrow heads
+
 function isPoint(el) {
     return matchesSelector(el, '.connector-point');
 };
@@ -70,7 +72,79 @@ Connector.prototype.updateAt = function(thisProp, diagProp, opts) {
     return this;
 };
 
+function lineEqn(x, y, m, c) {
+    if (!y) {
+        return m * x + c;
+    }
+    if (!x) {
+        return (y - c) / m;
+    }
+    if (!m) {
+        return (y - c) / x;
+    }
+    if (!c) {
+        return y - m * x;
+    }
+}
+
+var drawLine = true;
 Connector.prototype.render = function(render) {
+    if (this._startsAt.component && this._endsAt.component && drawLine) {
+        // Calc slope
+        var p1 = this._startsAt.coords,
+            p2 = this._endsAt.coords,
+            dx = p1[0] - p2[0],
+            dy = p1[1] - p2[1],
+            slope = dy / dx,
+            mdx = dx < 0 ? ~ dx + 1 : dx,
+            mdy = dy < 0 ? ~ dy + 1 : dy,
+            dirXWise = (mdx > mdy),
+            c, x1, x2, y1, y2;
+
+        if (slope === Infinity || slope === 0) {
+            slope = undefined;
+        }
+        c = lineEqn(p1[0], p1[1], slope);
+
+        // If direction is x wise, we need to find the y coordinates.
+        if (dirXWise) {
+            // If dx ix -ve we use p1's right edge and p2's left edge.
+            if (dx < 0) {
+                x1 = p1[3];
+                x2 = p2[2];
+            // If dx ix +ve we use p1's left edge and p2's right edge.
+            } else {
+                x1 = p1[2];
+                x2 = p2[3];
+            }
+            y1 = slope ? lineEqn(x1, null, slope, c) : p1[1];
+            y2 = slope ? lineEqn(x2, null, slope, c) : p2[1];
+
+        // If direction is y wise, we need to find the x coordinates.
+        } else {
+            console.log(dy);
+            // If dy is +ve we use p1's bottom edge and p2's top edge.
+            if (dy > 0) {
+                y1 = p1[4];
+                y2 = p2[5];
+            // If dy is +ve we use p1's top edge and p2's bottom edge.
+            } else {
+                y1 = p1[5];
+                y2 = p2[4];
+            }
+            x1 = slope ? lineEqn(null, y1, slope, c) : p1[0];
+            x2 = slope ? lineEqn(null, y2, slope, c) : p2[0];
+        }
+
+        this._diagonal.source({
+            x: x1,
+            y: y1
+        }).target({
+            x: x2,
+            y: y2
+        });
+    }
+
     this.el.attr('d', this._diagonal);
     return this;
 };

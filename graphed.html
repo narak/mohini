@@ -50,15 +50,16 @@ line:hover {
 <script>
 
 var comps = [],
-    compCount = 25,
-    perRow = 5;
+    compCount = 4,
+    perRow = 2,
+    distance = 150;
 
 for (var i = 0; i < compCount; i++) {
     comps.push(addComponent({
         w: 50,
         h: 50,
-        x: 100 + ((i * 100) - (Math.floor(i / perRow) * 100 * perRow)),
-        y: 100 + (Math.floor(i / perRow) * 100),
+        x: distance + ((i * distance) - (Math.floor(i / perRow) * distance * perRow)),
+        y: distance + (Math.floor(i / perRow) * distance),
         l: 'Comp ' + i
     }));
 }
