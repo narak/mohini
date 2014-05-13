@@ -2,96 +2,198 @@
 <meta charset='utf-8'>
 <style>
 
-text {
-    font: 10px sans-serif;
+html, body {
+    margin: 0;
+    padding: 0;
 }
 
 line {
     stroke: #000;
-    stroke-width: 1.5px;
+}
+
+.dragging .component,
+.dragging .component:hover {
+    stroke: #000;
 }
 
 .component {
     fill: #fff;
     stroke: #ccc;
-    stroke-width: 1.5px;
+    pointer-events: all;
+}
+
+.component:hover {
+    stroke: #567890;
+    fill: #eee;
+}
+
+.connector-point {
+    fill: rgb(95, 128, 170);
+}
+.connector-point:hover {
+    fill: rgb(30, 74, 131);
 }
 
 </style>
 <body>
-<script src='d3.v3.min.js'></script>
+<script src='js/d3.v3.min.js'></script>
 <script>
 
-var width = window.innerWidth,
-    height = window.innerHeight;
-
-var zoom = d3.behavior.zoom()
-    .scaleExtent([1, 10])
+var defaultZoom = 10,
+    zoom = d3.behavior.zoom()
+    .scaleExtent([1, 100])
     .on('zoom', function() {
-        container.attr('transform', 'translate(' + d3.event.translate + ')scale(' + d3.event.scale + ')');
+        container.attr('transform', 'translate(' + d3.event.translate + ') scale(' + d3.event.scale + ')');
     });
 
 var drag = d3.behavior.drag()
-    .origin(function(d) { return d; })
+    .origin(function(d) { return d.scaled; })
     .on('dragstart', function(d) {
         d3.event.sourceEvent.stopPropagation();
         d3.select(this).classed('dragging', true);
     })
     .on('drag', function(d) {
-        d.x = d3.event.x;
-        d.y = d3.event.y;
-        d3.select(this)
-            .attr('transform', 'translate(' + d.x + ',' + d.y + ')');
+        var key, el;
+
+        d.scaled.x = d3.event.x;
+        d.scaled.y = d3.event.y;
+
+        // for (key in d.el) {
+        //     if (!d.el.hasOwnProperty(key)) continue;
+
+        //     el = d.el[key];
+        //     el.attr('x', d.scaled.x);
+        //     el.attr('y', d.scaled.y);
+        // }
+
+        // If you transform the group, all the group children take their
+        // positions in relation to the group's position.
+        d.el.group.attr('transform', 'translate(' + d.scaled.x + ', ' + d.scaled.y + ')');
     })
     .on('dragend', function(d) {
         d3.select(this).classed('dragging', false);
     });
 
-var svg = d3.select('body').append('svg')
+var connectorPoint;
+(function() {
+    var line = null;
+
+    connectorPoint = function(point) {
+        point
+            .on('mousedown', function() {
+                // Prevent drag.
+                d3.event.stopPropagation();
+            })
+            .on('click', function(d) {
+                console.log(d3.event.x, d3.event.y);
+                if (!line) {
+                    // Start connector.
+                    line = lineContainer.append('line')
+                        .style('stroke-width', scaleToInitialZoom(1) + 'px')
+                        .attr('x1', scaleToInitialZoom(d3.event.x))
+                        .attr('y1', scaleToInitialZoom(d3.event.y))
+                        .attr('x2', scaleToInitialZoom(d3.event.x - 1))
+                        .attr('y2', scaleToInitialZoom(d3.event.y - 1));
+                    d3.select('body').on('mousemove.connectorstart', function() {
+                        console.log(d3.event.x, d3.event.y);
+                        line.attr('x2', scaleToInitialZoom(d3.event.x - 1))
+                            .attr('y2', scaleToInitialZoom(d3.event.y - 1));
+                    });
+                } else {
+                    // End connector.
+                    line.attr('x2', scaleToInitialZoom(d3.event.x))
+                        .attr('y2', scaleToInitialZoom(d3.event.y));
+                    line = null;
+                    d3.select('body').on('mousemove.connectorstart', null);
+                }
+            });
+    };
+})();
+
+var width = window.innerWidth,
+    height = window.innerHeight - 5,
+    svg = d3.select('body').append('svg')
         .attr('width', width)
         .attr('height', height)
-        .call(zoom)
-        .append('g'),
-    container = svg.append('g');
+        .call(zoom),
+    container = svg.append('g'),
+    lineContainer = container.append('g'),
+    compContainer = container.append('g');
 
-function addComponent(data) {
-    var bar = container.append('g')
-        .data([data])
-        .attr('x', function(d) { return d.x; })
-        .attr('y', function(d) { return d.y; })
-        .call(drag);
+// Set the initial visual zoom.
+container.attr('transform', 'translate(0,0)scale(' + defaultZoom + ')');
+// This sets the internal values for d3 so it doesn't jump when you do an actual zoom.
+zoom.translate([0,0]).scale(defaultZoom);
 
-    bar.append('rect')
-        .attr('class', 'component')
-        .attr('width', function(d) { return d.w; })
-        .attr('height', function(d) { return d.h; })
-        .attr('x', function(d) { return d.x; })
-        .attr('y', function(d) { return d.y; })
-        .attr('rx', 5)
-        .attr('ry', 5);
-
-    bar.append('text')
-        .attr('width', function(d) { return d.w; })
-        .attr('height', function(d) { return d.h; })
-        .attr('x', function(d) { return d.x + (d.w / 2); })
-        .attr('y', function(d) { return d.y + 10; })
-        .attr('text-anchor', 'middle')
-        .text(function(d) { return d.l; });
+function scaleToInitialZoom(val) {
+    return (val / defaultZoom).toFixed(3);
 }
 
-addComponent({
-    w: 50,
-    h: 50,
-    x: 100,
-    y: 100,
-    l: 'Test Component 1'
-});
+function addComponent(data) {
+    data.scaled = {};
+    data.scaled.x = scaleToInitialZoom(data.x);
+    data.scaled.y = scaleToInitialZoom(data.y);
+    data.scaled.w = scaleToInitialZoom(data.w);
+    data.scaled.h = scaleToInitialZoom(data.h);
+    data.scaled.r = scaleToInitialZoom(data.r || 5);
+    data.scaled.fs = scaleToInitialZoom(data.fs || 10);
+    data.scaled.fdx = scaleToInitialZoom(data.w / 2);
+    data.scaled.fdy = scaleToInitialZoom(20);
+    data.scaled.cx = scaleToInitialZoom(25);
+    data.scaled.cy = scaleToInitialZoom(35);
+    data.scaled.cr = scaleToInitialZoom(data.cr || 5);
 
-addComponent({
-    w: 50,
-    h: 50,
-    x: 200,
-    y: 100,
-    l: 'Test Component 2'
-});
+    var group = compContainer.append('g')
+            .data([data])
+            .attr('x', function(d) { return d.scaled.x; })
+            .attr('y', function(d) { return d.scaled.y; })
+            .attr('transform', function(d) { return 'translate(' + d.scaled.x + ', ' + d.scaled.y + ')'; })
+            .call(drag);
+
+    data.el = {
+        rect: group.append('rect')
+            .attr('class', 'component')
+            .attr('width', function(d) { return d.scaled.w; })
+            .attr('height', function(d) { return d.scaled.h; })
+            .attr('rx', data.scaled.r)
+            .style({
+                'stroke-width': scaleToInitialZoom(1) + 'px'
+            })
+            .attr('ry', data.scaled.r),
+
+        text: group.append('text')
+            .attr('width', function(d) { return d.scaled.w; })
+            .attr('height', function(d) { return d.scaled.h; })
+            .attr('dx',  function(d) { return d.scaled.fdx; })
+            .attr('dy',  function(d) { return d.scaled.fdy; })
+            .attr('text-anchor', 'middle')
+            .style('font', data.scaled.fs + 'px ' + (data.ff || 'sans-serif'))
+            .text(function(d) { return d.l; }),
+
+        circle: group.append('circle')
+            .attr('class', 'connector-point')
+            .attr('cx', function(d) { return d.scaled.cx; })
+            .attr('cy', function(d) { return d.scaled.cy; })
+            .attr('r',  function(d) { return d.scaled.cr; })
+            .call(connectorPoint),
+
+        group: group
+    };
+
+    return data;
+}
+
+var comps = [],
+    compCount = 70,
+    perRow = 10;
+
+for (var i = 0; i < compCount; i++) {
+    comps.push(addComponent({
+        w: 50,
+        h: 50,
+        x: 100 + ((i * 100) - (Math.floor(i / perRow) * perRow * perRow * perRow)),
+        y: 100 + (Math.floor(i / perRow) * 100),
+        l: 'Comp ' + i
+    }));
+}
 </script>
