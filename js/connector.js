@@ -8,6 +8,8 @@ var isPoint = function(el) {
     diagonal = d3.svg.diagonal();
 
 function startsAt(opts) {
+    opts = opts || {};
+
     var coords;
 
     this._startsAt = this._startsAt || {};
@@ -18,6 +20,12 @@ function startsAt(opts) {
     } else if (opts.coords) {
         coords = this._startsAt.coords = opts.coords;
         delete this._startsAt.component;
+    } else if (opts.update && this._startsAt.coords) {
+        if (this._startsAt.component) {
+            coords = this._startsAt.coords = this._startsAt.component.getEndPointCoords();
+        } else {
+            coords = this._startsAt.coords;
+        }
     }
 
     if (!coords || !(coords instanceof Array) || coords.length === 0) {
@@ -36,6 +44,8 @@ function startsAt(opts) {
 }
 
 function endsAt(opts) {
+    opts = opts || {};
+
     var coords;
 
     this._endsAt = this._endsAt || {};
@@ -46,6 +56,12 @@ function endsAt(opts) {
     } else if (opts.coords) {
         coords = this._endsAt.coords = opts.coords;
         delete this._endsAt.component;
+    } else if (opts.update && this._endsAt.coords) {
+        if (this._endsAt.component) {
+            coords = this._endsAt.coords = this._endsAt.component.getEndPointCoords();
+        } else {
+            coords = this._endsAt.coords;
+        }
     }
 
     if (!coords || !(coords instanceof Array) || coords.length === 0) {
@@ -106,38 +122,4 @@ function connectorPoint(group) {
                 line = null;
             }
         });
-}
-
-function genLinks() {
-    var links = [],
-        sctns, ectns, line;
-
-    for (var uuid in lineMap) {
-        if (!lineMap.hasOwnProperty(uuid)) continue;
-
-        line = lineMap[uuid];
-        sctns = line._startComponent.getEndPointCoords();
-        ectns = line._endComponent.getEndPointCoords();
-
-        links.push({
-            source: {
-                x: sctns[0],
-                y: sctns[1]
-            },
-            target: {
-                x: ectns[0],
-                y: ectns[1]
-            }
-        });
-    }
-
-    console.log(linkContainer);
-    linkContainer
-        .selectAll(".link").remove()
-    linkContainer
-        .selectAll(".link")
-        .data(links)
-        .enter().append("path")
-        .attr("class", "link")
-        .attr("d", diagonal);
 }

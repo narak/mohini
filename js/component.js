@@ -14,10 +14,10 @@ var drag = d3.behavior.drag()
 
         var component = getComponent(this.getAttribute('uuid'));
         component.connectors.startsAt.forEach(function(conn) {
-            conn.startsAt();
+            conn.startsAt({ update: true });
         });
         component.connectors.endsAt.forEach(function(conn) {
-            conn.endsAt();
+            conn.endsAt({ update: true });
         });
 
     })
