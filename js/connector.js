@@ -180,6 +180,10 @@ Connector.prototype.centroidToEdge = function() {
             y1 = slope ? lineEqn(x1, null, slope, c) : p1[1];
             y2 = slope ? lineEqn(x2, null, slope, c) : p2[1];
 
+            // If the calculated y1 or y2 are too close to the rect top/bottom
+            // we snap it to a quarter of a way down or up from either of them
+            // so the connectors stay away from the corners.
+
             h = p1[2].y2 - p1[2].y1;
             quart = h / 4;
             if (y1 > p1[2].y2 - quart) {
@@ -209,6 +213,10 @@ Connector.prototype.centroidToEdge = function() {
             }
             x1 = slope ? lineEqn(null, y1, slope, c) : p1[0];
             x2 = slope ? lineEqn(null, y2, slope, c) : p2[0];
+
+            // If the calculated x1 or x2 are too close to the rect left/right
+            // we snap it to a quarter of a way left or right from either of them
+            // so the connectors stay away from the corners.
 
             w = p1[2].x2 - p1[2].x1;
             quart = w / 4;
