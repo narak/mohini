@@ -135,12 +135,17 @@ for (var j = compCount - 2; j >= 0; j--) {
 }
 
 d3.select('#add-component').on('click.addComponent', function() {
-    console.log(arguments);
-
+    var name = prompt('Enter component name'),
+        comp = new Component({
+            w: 50,
+            h: 50,
+            x: 50,
+            y: 50,
+            l: name
+        });
+    comps.push(comp);
 });
 d3.select('#add-connector').on('click.addConnector', function() {
-    console.log(arguments);
-
 });
 </script>
 </body>

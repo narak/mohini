@@ -267,16 +267,12 @@ function ConnectorPlugin(group) {
             if (!connector) {
                 connector = new Connector()
                     .startsAt({ component: component});
-                component.connectors.startsAt.push(connector);
-
                 body.on('mousemove.connectorPoint', function() {
                     connector.endsAt({ coords: translateNScale(d3.event), render: true })
                 });
             } else {
                 // End connector.
                 connector.endsAt({ component: component, render: true });
-                component.connectors.endsAt.push(connector);
-
                 body.on('mousemove.connectorPoint', null);
                 connector = null;
             }

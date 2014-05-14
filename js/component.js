@@ -45,6 +45,7 @@ function Component(data) {
     self.scaled.cx = scaleToInitialZoom(25);
     self.scaled.cy = scaleToInitialZoom(35);
     self.scaled.cr = scaleToInitialZoom(data.cr || 5);
+    self.name = data.l;
 
     self.connectors = { startsAt: {}, endsAt: {} };
 
@@ -80,7 +81,7 @@ function Component(data) {
             .attr('dy',  function(d) { return d.scaled.fdy; })
             .attr('text-anchor', 'middle')
             .style('font', self.scaled.fs + 'px ' + (self.ff || 'sans-serif'))
-            .text(function(d) { return d.l; }),
+            .text(function(d) { return d.name; }),
 
         endpoint: group.append('circle')
             .attr('class', 'connector-point')
