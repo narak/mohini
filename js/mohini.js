@@ -52,5 +52,6 @@ container.attr('transform', 'translate(0,0)scale(' + defaultZoom + ')');
 zoom.translate([0,0]).scale(defaultZoom);
 
 function scaleToInitialZoom(val) {
-    return (val / defaultZoom).toFixed(3);
+    return val;
+    //return (val / defaultZoom).toFixed(3);
 }
