@@ -80,10 +80,6 @@ function Connector() {
         .attr("marker-mid", "url(#markerMid)")
         .attr("marker-end", "url(#markerEnd)");
 
-    body.on('mousemove.connectorPoint', function() {
-        self.endsAt({ coords: translateNScale(d3.event) })
-    });
-
     return self;
 }
 
@@ -246,7 +242,7 @@ Connector.prototype.render = function() {
 };
 
 var connector;
-function connectorPoint(group) {
+function ConnectorPlugin(group) {
     group.on('mousedown.connectorPoint', function() {
             if (!isPoint(d3.event.target)) return;
             // Prevent drag.
@@ -261,12 +257,16 @@ function connectorPoint(group) {
                 connector = new Connector()
                     .startsAt({ component: component, render: false });
                 component.connectors.startsAt.push(connector);
+
+                body.on('mousemove.connectorPoint', function() {
+                    connector.endsAt({ coords: translateNScale(d3.event) })
+                });
             } else {
                 // End connector.
                 connector.endsAt({ component: component });
                 component.connectors.endsAt.push(connector);
 
-                d3.select('body').on('mousemove.connectorPoint', null);
+                body.on('mousemove.connectorPoint', null);
                 connector = null;
             }
         });

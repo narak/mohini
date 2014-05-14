@@ -75,7 +75,7 @@ function addComponent(data) {
             .attr('x', function(d) { return d.scaled.x; })
             .attr('y', function(d) { return d.scaled.y; })
             .attr('transform', function(d) { return 'translate(' + d.scaled.x + ', ' + d.scaled.y + ')'; })
-            .call(connectorPoint)
+            .call(ConnectorPlugin)
             .call(drag);
 
     group
