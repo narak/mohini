@@ -1,13 +1,60 @@
 // TODO: Arrow heads
-svg.append("defs").append("marker")
-    .attr("id", "arrowhead")
-    .attr("refX", 0.1) /*must be smarter way to calculate shift*/
-    .attr("refY", 2)
-    .attr("markerWidth", 2)
-    .attr("markerHeight", 4)
+var defsContainer = svg.append("defs");
+
+defsContainer.append("marker")
+    .attr("id", "markerEnd")
+    .attr("refX", 1.5)
+    .attr("refY", 1.5)
+    .attr("markerWidth", 7)
+    .attr("markerHeight", 7)
     .attr("orient", "auto")
-    .append("path")
-        .attr("d", "M0,0 C45,45 45,-45 90,0"); //this is actual shape for arrowhead
+    .style({
+        'stroke': 'none',
+        'fill': '#000000'
+    })
+    .append("circle")
+        .attr("cx", 1.5)
+        .attr('cy', 1.5)
+        .attr('r', 1.5);
+    // .attr("refX", 3)
+    // .attr("refY", 1.5)
+    // .attr("markerWidth", 3)
+    // .attr("markerHeight", 3)
+    // .attr("orient", "auto")
+    // .append("path")
+    //     .attr("d", "M 0,0 V 3 L3,1.5 Z");
+
+defsContainer.append("marker")
+    .attr("id", "markerMid")
+    .attr("refX", 10)
+    .attr("refY", 10)
+    .attr("markerWidth", 7)
+    .attr("markerHeight", 7)
+    .attr("orient", "auto")
+    .style({
+        'stroke': 'none',
+        'fill': '#000000'
+    })
+    .append("circle")
+        .attr("cx", 10)
+        .attr('cy', 10)
+        .attr('r', 10);
+
+defsContainer.append("marker")
+    .attr("id", "markerStart")
+    .attr("refX", 1.5)
+    .attr("refY", 1.5)
+    .attr("markerWidth", 7)
+    .attr("markerHeight", 7)
+    .attr("orient", "auto")
+    .style({
+        'stroke': 'none',
+        'fill': '#000000'
+    })
+    .append("circle")
+        .attr("cx", 1.5)
+        .attr('cy', 1.5)
+        .attr('r', 1.5);
 
 function isPoint(el) {
     return matchesSelector(el, '.connector-point');
@@ -22,13 +69,16 @@ function Connector() {
 
     connectorMap[uuid] = self;
 
-    self._diagonal = d3.svg.diagonal();
+    self._diagonal = d3.svg.diagonal()
+        .projection(function(d) { return [d.y, d.x]; });
 
     // Start connector.
     self.el = connectorContainer.append('path')
         .attr('class', 'connector')
         .attr('uuid', uuid)
-        .attr("marker-end", "url(#arrowhead)");
+        .attr("marker-start", "url(#markerStart)")
+        .attr("marker-mid", "url(#markerMid)")
+        .attr("marker-end", "url(#markerEnd)");
 
     body.on('mousemove.connectorPoint', function() {
         self.endsAt({ coords: translateNScale(d3.event) })
@@ -72,8 +122,8 @@ Connector.prototype.updateAt = function(thisProp, diagProp, opts) {
     }
 
     this._diagonal = this._diagonal[diagProp]({
-        x: coords[0],
-        y: coords[1]
+        x: coords[1],
+        y: coords[0]
     });
 
     if (opts.render === undefined || opts.render) {
@@ -110,7 +160,7 @@ Connector.prototype.centroidToEdge = function() {
             mdx = dx < 0 ? ~ dx + 1 : dx,
             mdy = dy < 0 ? ~ dy + 1 : dy,
             dirXWise = (mdx > mdy),
-            c, x1, x2, y1, y2;
+            c, x1, x2, y1, y2, h, w, quart;
 
         if (slope === Infinity || slope === 0) {
             slope = undefined;
@@ -125,11 +175,27 @@ Connector.prototype.centroidToEdge = function() {
                 x2 = p2[2].x1;
             // If dx ix +ve we use p1's left edge and p2's right edge.
             } else {
-                x1 = p1[2].x2;
-                x2 = p2[2].x1;
+                x1 = p1[2].x1;
+                x2 = p2[2].x2;
             }
             y1 = slope ? lineEqn(x1, null, slope, c) : p1[1];
             y2 = slope ? lineEqn(x2, null, slope, c) : p2[1];
+
+            h = p1[2].y2 - p1[2].y1;
+            quart = h / 4;
+            if (y1 > p1[2].y2 - quart) {
+                y1 = p1[2].y2 - quart;
+            } else if (y1 < p1[2].y1 + quart) {
+                y1 = p1[2].y1 + quart;
+            }
+
+            h = p2[2].y2 - p2[2].y1;
+            quart = h / 4;
+            if (y2 > p2[2].y2 - quart) {
+                y2 = p2[2].y2 - quart;
+            } else if (y1 < p2[2].y1 + quart) {
+                y2 = p2[2].y1 + quart;
+            }
 
         // If direction is y wise, we need to find the x coordinates.
         } else {
@@ -144,14 +210,31 @@ Connector.prototype.centroidToEdge = function() {
             }
             x1 = slope ? lineEqn(null, y1, slope, c) : p1[0];
             x2 = slope ? lineEqn(null, y2, slope, c) : p2[0];
+
+            w = p1[2].x2 - p1[2].x1;
+            quart = w / 4;
+            if (x1 > p1[2].x2 - quart) {
+                x1 = p1[2].x2 - quart;
+            } else if (x1 < p1[2].x1 + quart) {
+                x1 = p1[2].x1 + quart;
+            }
+
+            w = p2[2].x2 - p2[2].x1;
+            quart = w / 4;
+            if (x2 > p2[2].x2 - quart) {
+                x2 = p2[2].x2 - quart;
+            } else if (x1 < p2[2].x1 + quart) {
+                x2 = p2[2].x1 + quart;
+            }
         }
 
+        // 3.5 to offset Y a bit because of markers being hidden.
         this._diagonal.source({
-            x: x1,
-            y: y1
+            x: y1 + 3.5,
+            y: x1
         }).target({
-            x: x2,
-            y: y2
+            x: y2 + 3.5,
+            y: x2
         });
     }
 };

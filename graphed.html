@@ -43,10 +43,12 @@ line:hover {
 .connector {
     fill: none;
     stroke: rgb(95, 128, 170);
-    stroke-width: 2px;
+    stroke-width: 4px;
+    stroke-dasharray: 0,2 1;
 }
 .connector:hover {
     stroke-width: 4px;
+    stroke-dasharray: none;
 }
 
 #svg-container {
@@ -68,9 +70,9 @@ line:hover {
 <script>
 
 var comps = [],
-    compCount = 16,
-    perRow = 4,
-    distance = 100;
+    compCount = 4,
+    perRow = 2,
+    distance = 200;
 
 for (var i = 0; i < compCount; i++) {
     comps.push(addComponent({
