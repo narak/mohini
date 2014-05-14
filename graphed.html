@@ -106,6 +106,7 @@ button:active {
 
 <div id="svg-container"></div>
 
+<script src='js/helpers.js'></script>
 <script src='js/d3.v3.min.js'></script>
 <script src='js/mohini.js'></script>
 <script src='js/component.js'></script>
@@ -145,8 +146,23 @@ d3.select('#add-component').on('click.addComponent', function() {
         });
     comps.push(comp);
 });
-d3.select('#add-connector').on('click.addConnector', function() {
-});
+
+(function() {
+    var started = false,
+        handle;
+    d3.select('#add-connector').on('click.addConnector', function() {
+        handle = Component.on('click', function(component) {
+            if (!started) {
+                Connector.connect(component);
+            } else {
+                Connector.connect(component);
+                Component.off(handle);
+            }
+            started = !started;
+        });
+    });
+})();
+
 </script>
 </body>
 </html>

@@ -263,18 +263,41 @@ function ConnectorPlugin(group) {
             if (!isPoint(d3.event.target)) return;
 
             var component = Component.get(d3.select(this).attr('uuid'));
-
-            if (!connector) {
-                connector = new Connector()
-                    .startsAt({ component: component});
-                body.on('mousemove.connectorPoint', function() {
-                    connector.endsAt({ coords: translateNScale(d3.event), render: true })
-                });
-            } else {
-                // End connector.
-                connector.endsAt({ component: component, render: true });
-                body.on('mousemove.connectorPoint', null);
-                connector = null;
-            }
+            Connector.connect(component);
         });
+}
+
+Connector.connect = function(component, dest) {
+    if (!component) return;
+
+    if (component && dest) {
+        new Connector()
+            .startsAt({ component: component })
+            .endsAt({ component: dest })
+            .render();
+        return component;
+    }
+
+    // Start connector.
+    if (!Component._connector) {
+        Component._connector = new Connector()
+            .startsAt({ component: component});
+
+        body.on('mousemove.connectorPoint', function() {
+            Component._connector.endsAt({
+                coords: translateNScale(d3.event),
+                render: true
+            });
+        });
+
+    // End connector.
+    } else {
+        Component._connector.endsAt({
+            component: component,
+            render: true
+        });
+        Component._connector = null;
+
+        body.on('mousemove.connectorPoint', null);
+    }
 }

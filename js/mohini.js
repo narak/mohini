@@ -5,26 +5,6 @@ d3.selection.prototype.moveToFront = function() {
   });
 };
 
-// Because d3 doesn't do event delagation... dafaq.
-var matchesSelector = (function() {
-    var el = document.documentElement,
-        _matcher = el.matches || el.webkitMatchesSelector || el.mozMatchesSelector ||
-            el.msMatchesSelector || el.oMatchesSelector;
-
-    return function(el, selector) {
-        return _matcher.call(el, selector);
-    };
-})();
-
-// UUID.
-var generateUUID = (function() {
-    var id = 0;
-    return function(prefix) {
-        prefix = prefix || 'uuid';
-        return prefix + '-' + id++;
-    };
-})();
-
 // The coordinates need to be translated and scaled because, presumably,
 // the x, y coords are coming in relation to the window because it is a
 // mouse event. We need to scale/translate this to our svg.
