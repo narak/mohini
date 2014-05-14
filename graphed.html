@@ -149,19 +149,31 @@ d3.select('#add-component').on('click.addComponent', function() {
 
 (function() {
     var started = false,
-        handle;
+        handle,
+        addConnector = function() {
+            handle = Component.on('click', function(component) {
+                if (!started) {
+                    Connector.connect(component);
+                } else {
+                    Connector.connect(component);
+                    Component.off(handle);
+                    handle = null;
+                }
+                started = !started;
+            });
+        };
     d3.select('#add-connector').on('click.addConnector', function() {
-        handle = Component.on('click', function(component) {
-            if (!started) {
-                Connector.connect(component);
-            } else {
-                Connector.connect(component);
-                Component.off(handle);
-            }
-            started = !started;
-        });
+        if (!handle) {
+            addConnector();
+        }
+    });
+    d3.select(document).on('keyup', function() {
+        if (!handle && d3.event.keyCode === 67 && d3.event.shiftKey) {
+            addConnector();
+        }
     });
 })();
+
 
 </script>
 </body>
