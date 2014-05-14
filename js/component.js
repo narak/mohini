@@ -35,10 +35,18 @@ function getEndPointCoords() {
             y: (dim.top + dim.bottom) / 2
         });
 
-    xy.push(dim.left);
-    xy.push(dim.right);
-    xy.push(dim.top);
-    xy.push(dim.bottom);
+    translateNScale(dim.left, dim.top, dim);
+    dim.x1 = dim.x;
+    dim.y1 = dim.y;
+
+    translateNScale(dim.right, dim.bottom, dim);
+    dim.x2 = dim.x;
+    dim.y2 = dim.y;
+
+    delete dim.x;
+    delete dim.y;
+
+    xy.push(dim);
 
     return xy;
 }

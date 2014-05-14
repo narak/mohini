@@ -98,7 +98,8 @@ function lineEqn(x, y, m, c) {
 }
 
 var drawLine = true;
-Connector.prototype.render = function(render) {
+Connector.prototype.centroidToEdge = function() {
+
     if (this._startsAt.component && this._endsAt.component && drawLine) {
         // Calc slope
         var p1 = this._startsAt.coords,
@@ -120,27 +121,26 @@ Connector.prototype.render = function(render) {
         if (dirXWise) {
             // If dx ix -ve we use p1's right edge and p2's left edge.
             if (dx < 0) {
-                x1 = p1[3];
-                x2 = p2[2];
+                x1 = p1[2].x2;
+                x2 = p2[2].x1;
             // If dx ix +ve we use p1's left edge and p2's right edge.
             } else {
-                x1 = p1[2];
-                x2 = p2[3];
+                x1 = p1[2].x2;
+                x2 = p2[2].x1;
             }
             y1 = slope ? lineEqn(x1, null, slope, c) : p1[1];
             y2 = slope ? lineEqn(x2, null, slope, c) : p2[1];
 
         // If direction is y wise, we need to find the x coordinates.
         } else {
-            console.log(dy);
             // If dy is +ve we use p1's bottom edge and p2's top edge.
             if (dy > 0) {
-                y1 = p1[4];
-                y2 = p2[5];
+                y1 = p1[2].y1;
+                y2 = p2[2].y2;
             // If dy is +ve we use p1's top edge and p2's bottom edge.
             } else {
-                y1 = p1[5];
-                y2 = p2[4];
+                y1 = p1[2].y2;
+                y2 = p2[2].y1;
             }
             x1 = slope ? lineEqn(null, y1, slope, c) : p1[0];
             x2 = slope ? lineEqn(null, y2, slope, c) : p2[0];
@@ -154,7 +154,11 @@ Connector.prototype.render = function(render) {
             y: y2
         });
     }
+};
 
+Connector.prototype.render = function() {
+    if (!drawLine) return;
+    this.centroidToEdge();
     this.el.attr('d', this._diagonal);
     return this;
 };
