@@ -69,10 +69,11 @@ line:hover {
 <script src='js/connector.js'></script>
 <script>
 
-var comps = [],
-    compCount = 4,
-    perRow = 2,
-    distance = 200;
+var comps = [], conns = [],
+    compCount = 7,
+    perRow = 6,
+    distance = 200,
+    conn;
 
 for (var i = 0; i < compCount; i++) {
     comps.push(addComponent({
@@ -83,6 +84,14 @@ for (var i = 0; i < compCount; i++) {
         l: 'Comp ' + i
     }));
 }
+
+for (var j = compCount - 2; j >= 0; j--) {
+    conn = new Connector()
+        .startsAt({ component: comps[compCount - 1] })
+        .endsAt({ component: comps[j], render: true })
+    conns.push(conn);
+}
+
 
 </script>
 </body>

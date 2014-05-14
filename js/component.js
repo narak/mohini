@@ -12,14 +12,17 @@ var drag = d3.behavior.drag()
         // positions in relation to the group's position.
         d.el.group.attr('transform', 'translate(' + d.scaled.x + ', ' + d.scaled.y + ')');
 
-        var component = getComponent(this.getAttribute('uuid'));
-        component.connectors.startsAt.forEach(function(conn) {
-            conn.startsAt({ update: true });
-        });
-        component.connectors.endsAt.forEach(function(conn) {
-            conn.endsAt({ update: true });
-        });
+        var component = getComponent(this.getAttribute('uuid')),
+            uuid;
 
+        for (uuid in component.connectors.startsAt) {
+            component.connectors.startsAt[uuid]
+                .startsAt({ update: true, render: true });
+        }
+        for (uuid in component.connectors.endsAt) {
+            component.connectors.endsAt[uuid]
+                .endsAt({ update: true, render: true });
+        }
     })
     .on('dragend', function(d) {
         d3.select(this).classed('dragging', false);
@@ -66,7 +69,7 @@ function addComponent(data) {
     data.scaled.cx = scaleToInitialZoom(25);
     data.scaled.cy = scaleToInitialZoom(35);
     data.scaled.cr = scaleToInitialZoom(data.cr || 5);
-    data.connectors = { startsAt: [], endsAt: [] };
+    data.connectors = { startsAt: {}, endsAt: {} };
     data.getEndPointCoords = getEndPointCoords;
 
     var group = compContainer.append('g')

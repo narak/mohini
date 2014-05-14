@@ -69,6 +69,7 @@ function Connector() {
 
     connectorMap[uuid] = self;
 
+    self.uuid = uuid;
     self._diagonal = d3.svg.diagonal()
         .projection(function(d) { return [d.y, d.x]; });
 
@@ -84,23 +85,25 @@ function Connector() {
 }
 
 Connector.prototype.startsAt = function(opts) {
-    return this.updateAt.call(this, '_startsAt', 'source', opts);
+    return this.updateAt.call(this, 'startsAt', 'source', opts);
 };
 
 Connector.prototype.endsAt = function(opts) {
-    return this.updateAt.call(this, '_endsAt', 'target', opts);
+    return this.updateAt.call(this, 'endsAt', 'target', opts);
 };
 
-Connector.prototype.updateAt = function(thisProp, diagProp, opts) {
+Connector.prototype.updateAt = function(at, diagProp, opts) {
     opts = opts || {};
 
-    var coords;
+    var coords,
+        thisProp = '_' + at;
 
     this[thisProp] = this[thisProp] || {};
 
     if (opts.component) {
         this[thisProp].component = opts.component;
         coords = this[thisProp].coords = opts.component.getEndPointCoords();
+        opts.component.connectors[at][this.uuid] = this;
     } else if (opts.coords) {
         coords = this[thisProp].coords = opts.coords;
         delete this[thisProp].component;
@@ -122,7 +125,7 @@ Connector.prototype.updateAt = function(thisProp, diagProp, opts) {
         y: coords[0]
     });
 
-    if (opts.render === undefined || opts.render) {
+    if (opts.render) {
         this.render();
     }
     return this;
@@ -255,15 +258,15 @@ function ConnectorPlugin(group) {
 
             if (!connector) {
                 connector = new Connector()
-                    .startsAt({ component: component, render: false });
+                    .startsAt({ component: component});
                 component.connectors.startsAt.push(connector);
 
                 body.on('mousemove.connectorPoint', function() {
-                    connector.endsAt({ coords: translateNScale(d3.event) })
+                    connector.endsAt({ coords: translateNScale(d3.event), render: true })
                 });
             } else {
                 // End connector.
-                connector.endsAt({ component: component });
+                connector.endsAt({ component: component, render: true });
                 component.connectors.endsAt.push(connector);
 
                 body.on('mousemove.connectorPoint', null);
