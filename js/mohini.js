@@ -29,7 +29,8 @@ var generateUUID = (function() {
 // the x, y coords are coming in relation to the window because it is a
 // mouse event. We need to scale/translate this to our svg.
 var translateNScale = function(xy, y, obj) {
-    var translate = zoom.translate(),
+    var svgDim = svg.node().getBoundingClientRect(),
+        translate = zoom.translate(),
         scale = zoom.scale(),
         x, y;
 
@@ -40,8 +41,8 @@ var translateNScale = function(xy, y, obj) {
         y = xy.y;
     }
 
-    x = (x - translate[0]) / scale;
-    y = (y - translate[1]) / scale;
+    x = ((x - translate[0]) / scale) - svgDim.left;
+    y = ((y - translate[1]) / scale) - svgDim.top;
 
     if (obj) {
         obj.x = x;
