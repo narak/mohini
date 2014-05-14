@@ -162,7 +162,7 @@ Connector.prototype.centroidToEdge = function() {
             dirXWise = (mdx > mdy),
             c, x1, x2, y1, y2, h, w, quart;
 
-        if (slope === Infinity || slope === 0) {
+        if (slope === Infinity || slope === -Infinity || slope === 0) {
             slope = undefined;
         }
         c = lineEqn(p1[0], p1[1], slope);
@@ -228,12 +228,11 @@ Connector.prototype.centroidToEdge = function() {
             }
         }
 
-        // 3.5 to offset Y a bit because of markers being hidden.
         this._diagonal.source({
-            x: y1 + 3.5,
+            x: y1,
             y: x1
         }).target({
-            x: y2 + 3.5,
+            x: y2,
             y: x2
         });
     }
