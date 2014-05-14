@@ -59,22 +59,12 @@ var defaultZoom = 1,
         container.attr('transform', 'translate(' + d3.event.translate + ') scale(' + d3.event.scale + ')');
     });
 
-var // width = window.innerWidth,
-//     height = window.innerHeight - 5,
-    svg = d3.select('#svg-container').append('svg')
-        // .attr('width', width)
-        // .attr('height', height)
+var svg = d3.select('#svg-container').append('svg')
         .call(zoom),
     container = svg.append('g'),
     connectorContainer = container.append('g'),
     compContainer = container.append('g');
 
-// function updateWindow(){
-//     width = window.innerWidth;
-//     height = window.innerHeight - 5;
-//     svg.attr('width', width).attr('height', height);
-// }
-// window.onresize = updateWindow;
 
 // Set the initial visual zoom.
 container.attr('transform', 'translate(0,0)scale(' + defaultZoom + ')');

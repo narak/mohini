@@ -102,14 +102,14 @@ Connector.prototype.updateAt = function(at, diagProp, opts) {
 
     if (opts.component) {
         this[thisProp].component = opts.component;
-        coords = this[thisProp].coords = opts.component.getEndPointCoords();
+        coords = this[thisProp].coords = opts.component.getCoords();
         opts.component.connectors[at][this.uuid] = this;
     } else if (opts.coords) {
         coords = this[thisProp].coords = opts.coords;
         delete this[thisProp].component;
     } else if (opts.update && this[thisProp].coords) {
         if (this[thisProp].component) {
-            coords = this[thisProp].coords = this[thisProp].component.getEndPointCoords();
+            coords = this[thisProp].coords = this[thisProp].component.getCoords();
         } else {
             coords = this[thisProp].coords;
         }
@@ -262,7 +262,7 @@ function ConnectorPlugin(group) {
         .on('click.connectorPoint', function(d) {
             if (!isPoint(d3.event.target)) return;
 
-            var component = getComponent(d3.select(this).attr('uuid'));
+            var component = Component.get(d3.select(this).attr('uuid'));
 
             if (!connector) {
                 connector = new Connector()
