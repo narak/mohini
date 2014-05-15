@@ -273,8 +273,8 @@ var MohiniConnectorFactory = (function() {
 
         Connector.prototype.remove = function() {
             this.el.remove();
-            delete this._startsAt.component.connectors.startsAt[this.uuid];
-            delete this._endsAt.component.connectors.endsAt[this.uuid];
+            this._startsAt.component && delete this._startsAt.component.connectors.startsAt[this.uuid];
+            this._endsAt.component && delete this._endsAt.component.connectors.endsAt[this.uuid];
             delete this._startsAt.component;
             delete this._endsAt.component
             delete factory.connectors[self.uuid];
@@ -305,13 +305,17 @@ var MohiniConnectorFactory = (function() {
 
                 // End connector.
                 } else {
-                    Connector._connector.endsAt({
-                        component: component,
-                        render: true
-                    });
-                    Connector._connector = null;
+                    if (Connector._connector._startsAt.component != component) {
+                        Connector._connector.endsAt({
+                            component: component,
+                            render: true
+                        });
+                        Connector._connector = null;
 
-                    body.on('mousemove.connectorPoint', null);
+                        body.on('mousemove.connectorPoint', null);
+                    } else {
+                        Connector._connector.remove();
+                    }
                 }
             }
             return connector;
