@@ -157,7 +157,10 @@ var MohiniConnectorFactory = (function() {
         mohini._edgeOffset = 4;
         Connector.prototype.centroidToEdge = function() {
 
-            if (this._startsAt.component && this._endsAt.component && mohini._drawConnector) {
+            if (this._startsAt && this._endsAt
+                && this._startsAt.component && this._endsAt.component
+                && mohini._drawConnector) {
+
                 // Calc slope
                 var comp1 = this._startsAt.coords,
                     comp2 = this._endsAt.coords,
@@ -277,10 +280,18 @@ var MohiniConnectorFactory = (function() {
 
         Connector.prototype.remove = function() {
             this.el.remove();
-            this._startsAt.component && delete this._startsAt.component.connectors.startsAt[this.uuid];
-            this._endsAt.component && delete this._endsAt.component.connectors.endsAt[this.uuid];
-            delete this._startsAt.component;
-            delete this._endsAt.component
+            if (this._startsAt) {
+                if (this._startsAt.component) {
+                    delete this._startsAt.component.connectors.startsAt[this.uuid];
+                }
+                delete this._startsAt;
+            }
+            if (this._endsAt) {
+                if (this._endsAt.component) {
+                    delete this._endsAt.component.connectors.endsAt[this.uuid];
+                }
+                delete this._endsAt;
+            }
             delete factory.connectors[self.uuid];
         };
 

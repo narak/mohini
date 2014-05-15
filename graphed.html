@@ -146,13 +146,17 @@ function remove() {
 
 var clickHandle, started = false,
     addConnector = function() {
+        if (clickHandle) {
+            mohini.Component.off(clickHandle);
+            clickHandle = null;
+        }
         clickHandle = mohini.Component.on('click', function(component) {
             if (!started) {
                 mohini.trigger(Mohini.Events.CONNECT, component);
             } else {
                 mohini.trigger(Mohini.Events.CONNECT, component);
                 mohini.Component.off(clickHandle);
-                handle = null;
+                clickHandle = null;
             }
             started = !started;
         });
@@ -170,6 +174,7 @@ var addComponent = function() {
                 c.off(handle);
                 d3.select(document.body).on('mousemove.addComponent', null);
                 c.moveTo.apply(c, mohini.transform(evt.x - 20, evt.y - 20));
+                handle = null;
             });
         d3.select(document.body).on('mousemove.addComponent', function() {
             c.moveTo.apply(c, mohini.transform(d3.event.x - 20, d3.event.y - 20));
