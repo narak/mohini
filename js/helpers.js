@@ -1,3 +1,26 @@
+/**
+ * @see http://stackoverflow.com/questions/384286/javascript-isdom-how-do-you-check-if-a-javascript-object-is-a-dom-object
+ */
+function isNode(o){
+    return (
+        typeof Node === "object" ? o instanceof Node :
+        o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
+    );
+}
+function isElement(o){
+    return (
+        typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
+        o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName==="string"
+    );
+}
+
+// Add fn to d3.
+d3.selection.prototype.moveToFront = function() {
+    return this.each(function(){
+        this.parentNode.appendChild(this);
+    });
+};
+
 function each(arr, cb) {
     for (var key in arr) {
         if (arr.hasOwnProperty(key)) cb(arr[key]);
@@ -6,14 +29,14 @@ function each(arr, cb) {
 
 function extend(obj) {
     each(Array.prototype.slice.call(arguments, 1), function(source) {
-      if (source) {
-        for (var prop in source) {
-          obj[prop] = source[prop];
+        if (source) {
+            for (var prop in source) {
+                obj[prop] = source[prop];
+            }
         }
-      }
     });
     return obj;
-  };
+};
 
 // Because d3 doesn't do event delagation... dafaq.
 var matchesSelector = (function() {

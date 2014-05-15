@@ -17,7 +17,7 @@ html, body {
 }
 
 body {
-    padding: 1rem;
+    padding: 3rem;
 }
 
 line {
@@ -56,8 +56,10 @@ line:hover {
     stroke-dasharray: none;
 }
 
-#svg-container {
-    width: 100%;
+#svg-container,
+#svg-container2 {
+    display: inline-block;
+    width: 49%;
     height: 99%;
     border: 1px solid #ccc;
 }
@@ -105,9 +107,10 @@ button:active {
 </div>
 
 <div id="svg-container"></div>
+<div id="svg-container2"></div>
 
-<script src='js/helpers.js'></script>
 <script src='js/d3.v3.min.js'></script>
+<script src='js/helpers.js'></script>
 <script src='js/mohini.js'></script>
 <script src='js/component.js'></script>
 <script src='js/connector.js'></script>
@@ -118,8 +121,26 @@ var comps = [], conns = [],
     distance = 120,
     conn;
 
+var mohini = new Mohini({
+    container: document.getElementById('svg-container'),
+    width: '100%',
+    height: '100%',
+    // toolbar: new Mohini.Toolbar({
+    //     container: document.getElementById('toolbar'),
+    //     buttons: {
+    //         'addComponent': '#add-component',
+    //         'addConnector': '#add-connector'
+    //     },
+    //     keyBindings: {
+    //         'addComponent': 'shift+c',
+    //         'addConnector': 'shift+x'
+    //     }
+    // }),
+});
+
+
 for (var i = 0; i < compCount; i++) {
-    comps.push(new Component({
+    comps.push(new mohini.Component({
         w: 50,
         h: 50,
         x: distance + ((i * distance) - (Math.floor(i / perRow) * distance * perRow)),
@@ -129,63 +150,94 @@ for (var i = 0; i < compCount; i++) {
 }
 
 for (var j = compCount - 2; j >= 0; j--) {
-    conn = new Connector()
+    conn = new mohini.Connector()
         .startsAt({ component: comps[compCount - 1] })
         .endsAt({ component: comps[j], render: true })
     conns.push(conn);
 }
 
-
-(function() {
-    var started = false,
-        handle,
-        addConnector = function() {
-            handle = Component.on('click', function(component) {
-                if (!started) {
-                    Connector.connect(component);
-                } else {
-                    Connector.connect(component);
-                    Component.off(handle);
-                    handle = null;
-                }
-                started = !started;
-            });
-        },
-        addComponent = function() {
-            var name = prompt('Enter component name'),
-                comp = new Component({
-                    w: 50,
-                    h: 50,
-                    x: 50,
-                    y: 50,
-                    l: name
-                });
-            comps.push(comp);
-        };
-
-    d3.select('#add-connector').on('click.addConnector', function() {
-        if (!handle) {
-            addConnector();
+var mohini2 = new Mohini({
+    container: document.getElementById('svg-container2'),
+    width: '100%',
+    height: '100%',
+    events: {
+        '#add-component': {
+            'click': Mohini.Events.ADD_COMPONENT
         }
-    });
+    }
+    // toolbar: new Mohini.Toolbar({
+    //     container: document.getElementById('toolbar'),
+    //     buttons: {
+    //         'addComponent': '#add-component',
+    //         'addConnector': '#add-connector'
+    //     },
+    //     keyBindings: {
+    //         'addComponent': 'shift+c',
+    //         'addConnector': 'shift+x'
+    //     }
+    // }),
+});
 
-    d3.select('#add-component').on('click.addComponent', function() {
-        addComponent();
-    });
-
-    d3.select(document).on('keyup', function() {
-        if (d3.event.shiftKey) {
-            if (!handle && d3.event.keyCode === 88) {
-                addConnector();
+var clickHandle, started = false;
+d3.select(document).on('keyup', function() {
+    var evt = d3.event;
+    if (evt.shiftKey && (evt.keyCode === 67 || evt.keyCode === 99)) {
+        mohini.trigger(Mohini.Events.ADD_COMPONENT, prompt('Component name:', 'asd'));
+    }
+    if (evt.shiftKey && (evt.keyCode === 88 || evt.keyCode === 120)) {
+        clickHandle = mohini.Component.on('click', function(component) {
+            if (!started) {
+                mohini.trigger(Mohini.Events.CONNECT, component);
+            } else {
+                mohini.trigger(Mohini.Events.CONNECT, component);
+                mohini.Component.off(clickHandle);
+                handle = null;
             }
-            if (d3.event.keyCode === 67) {
-                addComponent();
-            }
-        }
-    });
-})();
+            started = !started;
+        });
+    }
+});
 
+var c1 = new mohini2.Component({
+    w: 50,
+    h: 50,
+    x: 50,
+    y: 50,
+    l: name
+});
+var c2 = new mohini2.Component({
+    w: 50,
+    h: 50,
+    x: 350,
+    y: 50,
+    l: name
+});
+var c3 = new mohini2.Component({
+    w: 50,
+    h: 50,
+    x: 200,
+    y: 200,
+    l: name
+});
+var c4 = new mohini2.Component({
+    w: 50,
+    h: 50,
+    x: 50,
+    y: 350,
+    l: name
+});
+var c5 = new mohini2.Component({
+    w: 50,
+    h: 50,
+    x: 350,
+    y: 350,
+    l: name
+});
 
+mohini2.Connector.connect(c1, c3);
+mohini2.Connector.connect(c2, c3);
+mohini2.Connector.connect(c4, c3);
+mohini2.Connector.connect(c5, c3);
 </script>
 </body>
 </html>

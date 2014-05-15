@@ -1,49 +1,107 @@
-// Add fn to d3.
-d3.selection.prototype.moveToFront = function() {
-    return this.each(function(){
-        this.parentNode.appendChild(this);
-    });
-};
+var Mohini = (function() {
+    var Mohini,
+        Events = {
+            ADD_COMPONENT: null,
+            ADD_CONNECTOR: null,
+            CONNECT: null
+        };
 
-// The coordinates need to be translated and scaled because, presumably,
-// the x, y coords are coming in relation to the window because it is a
-// mouse event. We need to scale/translate this to our svg.
-var translateNScale = function(xy, y, obj) {
-    var svgDim = svg.node().getBoundingClientRect(),
-        translate = zoom.translate(),
-        scale = zoom.scale(),
-        x, y;
+    Mohini = function Mohini(opts) {
+        if (!(this instanceof Mohini)) {
+            throw new Error('Wrong usage of factory. Use `new Mohini()`.');
+        }
 
-    if (y) {
-        x = xy;
-    } else if (xy) {
-        x = xy.x;
-        y = xy.y;
+        opts = opts || {};
+
+        var self = this;
+
+        extend(self, new PubSub);
+
+        self._zoom = d3.behavior.zoom()
+            .scaleExtent([.1, 10])
+            .on('zoom', function() {
+                self.container.attr('transform', 'translate(' + d3.event.translate + ') scale(' + d3.event.scale + ')');
+            });
+
+        if (opts.container) {
+            self.mainContainer = typeof container === 'string' || isElement(opts.container) ?
+                d3.select(opts.container) :
+                opts.container;
+        } else {
+            throw new Error('Cannot create instance of Mohini without a container.');
+        }
+
+        if (self.mainContainer.node() instanceof SVGElement) {
+            var div = document.createElement('div');
+            self.mainContainer.node().parentNode.insertBefore(div, self.mainContainer.node());
+            div.appendChild(self.mainContainer.node());
+            self.svg = self.mainContainer;
+            self.mainContainer = d3.select(div);
+        } else {
+            self.svg = self.mainContainer.append('svg');
+        }
+
+        self.container = self.svg.append('g');
+        self.svg.call(self._zoom);
+
+        opts.width && self.svg.attr('width', opts.width);
+        opts.height && self.svg.attr('height', opts.height);
+
+        // Add factories.
+        self.Connector = new MohiniConnectorFactory(self);
+        self.connect = self.Connector.connect;
+        self.Component = new MohiniComponentFactory(self);
+
+        // Event subscriptions;
+        self.on(Events.CONNECT, self.connect);
+
+        return self;
     }
 
-    x = ((x - translate[0]) / scale) - svgDim.left;
-    y = ((y - translate[1]) / scale) - svgDim.top;
+    /**
+     * Transforms and scales the coordinates from the window coordinate space
+     * to the svg coordinate space.
+     * @param  {object|number} xy  Object containinig x and y attributes to be
+     *                             transformed or x coordinate as number.
+     * @param  {number} y   y coordinate as number.
+     * @param  {object} obj Object to which the transformed x and y values will
+     *                      added as attributes.
+     * @return {array}      Transformed values as [x, y].
+     */
+    Mohini.prototype.transform = function(xy, y, obj) {
+        var self = this,
+            svgDim = self.svg.node().getBoundingClientRect(),
+            translate = self._zoom.translate(),
+            scale = self._zoom.scale(),
+            x, y;
 
-    if (obj) {
-        obj.x = x;
-        obj.y = y;
-    }
+        if (y) {
+            x = xy;
+        } else if (xy) {
+            x = xy.x;
+            y = xy.y;
+        }
+        if (x === undefined || y === undefined) {
+            return null;
+        }
 
-    return [x, y];
-};
+        x = ((x - translate[0] - svgDim.left) / scale);
+        y = ((y - translate[1] - svgDim.top) / scale);
 
-var zoom = d3.behavior.zoom()
-        .scaleExtent([.1, 10])
-        .on('zoom', function() {
-            container.attr('transform', 'translate(' + d3.event.translate + ') scale(' + d3.event.scale + ')');
-        }),
-    svg = d3.select('#svg-container').append('svg')
-        .call(zoom),
-    container = svg.append('g'),
-    connectorContainer = container.append('g'),
-    compContainer = container.append('g');
+        if (obj) {
+            obj.x = x;
+            obj.y = y;
+        }
 
-function zoomTo(val) {
-    container.attr('transform', 'translate(0,0) scale(' + val + ')');
-    zoom.translate([0, 0]).scale(val);
-}
+        return [x, y];
+    };
+
+    Mohini.prototype.zoom = function(val) {
+        this.container.attr('transform', 'translate(0,0) scale(' + val + ')');
+        this._zoom.translate([0, 0]).scale(val);
+    };
+
+    Mohini.Events = Events;
+    // extend(Mohini, new PubSub);
+    return Mohini;
+})();
