@@ -123,18 +123,7 @@ var comps = [], conns = [],
 var mohini = new Mohini({
     container: document.getElementById('svg-container'),
     width: '100%',
-    height: '100%',
-    // toolbar: new Mohini.Toolbar({
-    //     container: document.getElementById('toolbar'),
-    //     buttons: {
-    //         'addComponent': '#add-component',
-    //         'addConnector': '#add-connector'
-    //     },
-    //     keyBindings: {
-    //         'addComponent': 'shift+c',
-    //         'addConnector': 'shift+x'
-    //     }
-    // }),
+    height: '100%'
 });
 
 
@@ -159,11 +148,21 @@ function remove() {
     comps[compCount - 1].remove();
 }
 
-var clickHandle, started = false;
-d3.select(document).on('keyup', function() {
-    var evt = d3.event;
-    if (evt.shiftKey && (evt.keyCode === 67 || evt.keyCode === 99)) {
-        console.log('Creating component...');
+var clickHandle, started = false,
+    addConnector = function() {
+        clickHandle = mohini.Component.on('click', function(component) {
+            if (!started) {
+                mohini.trigger(Mohini.Events.CONNECT, component);
+            } else {
+                mohini.trigger(Mohini.Events.CONNECT, component);
+                mohini.Component.off(clickHandle);
+                handle = null;
+            }
+            started = !started;
+        });
+    };
+
+var addComponent = function() {
         var c = new mohini.Component({
                 w: 50,
                 h: 50,
@@ -179,92 +178,29 @@ d3.select(document).on('keyup', function() {
         d3.select(document.body).on('mousemove.addComponent', function() {
             c.moveTo.apply(c, mohini.transform(d3.event.x - 20, d3.event.y - 20));
         });
+    };
+
+d3.select(document).on('keyup', function() {
+    var evt = d3.event;
+    if (evt.shiftKey && (evt.keyCode === 67 || evt.keyCode === 99)) {
+        console.log('Creating component...');
+        addComponent();
     }
     if (evt.shiftKey && (evt.keyCode === 88 || evt.keyCode === 120)) {
         console.log('Creating connection...');
-        clickHandle = mohini.Component.on('click', function(component) {
-            if (!started) {
-                mohini.trigger(Mohini.Events.CONNECT, component);
-            } else {
-                mohini.trigger(Mohini.Events.CONNECT, component);
-                mohini.Component.off(clickHandle);
-                handle = null;
-            }
-            started = !started;
-        });
+        addConnector();
     }
 });
 
-// var mohini2 = new Mohini({
-//     container: document.getElementById('svg-container2'),
-//     width: '100%',
-//     height: '100%',
-//     events: {
-//         '#add-component': {
-//             'click': Mohini.Events.ADD_COMPONENT
-//         }
-//     }
-//     // toolbar: new Mohini.Toolbar({
-//     //     container: document.getElementById('toolbar'),
-//     //     buttons: {
-//     //         'addComponent': '#add-component',
-//     //         'addConnector': '#add-connector'
-//     //     },
-//     //     keyBindings: {
-//     //         'addComponent': 'shift+c',
-//     //         'addConnector': 'shift+x'
-//     //     }
-//     // }),
-// });
+d3.select('#add-component').on('click', function() {
+    console.log('Creating connection...');
+    addComponent();
+});
 
-
-// var c1 = new mohini2.Component({
-//     w: 50,
-//     h: 50,
-//     x: 50,
-//     y: 50,
-//     l: name
-// });
-// var c2 = new mohini2.Component({
-//     w: 50,
-//     h: 50,
-//     x: 350,
-//     y: 50,
-//     l: name
-// });
-// var c3 = new mohini2.Component({
-//     w: 50,
-//     h: 50,
-//     x: 200,
-//     y: 200,
-//     l: name
-// });
-// var c4 = new mohini2.Component({
-//     w: 50,
-//     h: 50,
-//     x: 50,
-//     y: 350,
-//     l: name
-// });
-// var c5 = new mohini2.Component({
-//     w: 50,
-//     h: 50,
-//     x: 350,
-//     y: 350,
-//     l: name
-// });
-
-// mohini2.Connector.connect(c1, c3);
-// mohini2.Connector.connect(c2, c3);
-// mohini2.Connector.connect(c4, c3);
-// mohini2.Connector.connect(c5, c3);
-
-// function remove(){
-//     c5.remove();
-//     c4.remove();
-//     c3.remove();
-//     c3 = c4 = c5 = null;
-// }
+d3.select('#add-connector').on('click', function() {
+    console.log('Creating connection...');
+    addConnector();
+});
 
 </script>
 </body>
