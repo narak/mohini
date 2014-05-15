@@ -117,7 +117,8 @@ button:active {
 var comps = [], conns = [],
     compCount = 21,
     perRow = 7,
-    distance = 120;
+    distance = 120,
+    conn;
 
 var mohini = new Mohini({
     container: document.getElementById('svg-container'),
@@ -138,7 +139,10 @@ for (var i = 0; i < compCount; i++) {
 }
 
 for (var j = compCount - 1; j >= 0; j--) {
-    conns.push(mohini.connect(comps[10], comps[j]));
+    conn = mohini.connect(comps[10], comps[j]);
+    if (!conn) continue;
+    conn.render();
+    conns.push(conn);
 }
 
 function remove() {

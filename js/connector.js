@@ -287,8 +287,7 @@ var MohiniConnectorFactory = (function() {
                 if (component !== dest) {
                     connector = new Connector()
                         .startsAt({ component: component })
-                        .endsAt({ component: dest })
-                        .render();
+                        .endsAt({ component: dest });
                 }
             } else {
                 // Start connector.
