@@ -1,9 +1,9 @@
 var Mohini = (function() {
     var Mohini,
         Events = {
-            ADD_COMPONENT: null,
-            ADD_CONNECTOR: null,
-            CONNECT: null
+            ADD_COMPONENT: 'component:add',
+            ADD_CONNECTOR: 'connector:add',
+            CONNECT: 'connector:connect'
         };
 
     Mohini = function Mohini(opts) {
@@ -54,6 +54,9 @@ var Mohini = (function() {
 
         // Event subscriptions;
         self.on(Events.CONNECT, self.connect);
+        self.on(Events.ADD_COMPONENT, function(opts) {
+            new self.Component(opts);
+        });
 
         return self;
     }
@@ -96,9 +99,25 @@ var Mohini = (function() {
         return [x, y];
     };
 
+    /**
+     * Set the zoom programmatically.
+     * @param  {val} val Zoom scale.
+     */
     Mohini.prototype.zoom = function(val) {
         this.container.attr('transform', 'translate(0,0) scale(' + val + ')');
         this._zoom.translate([0, 0]).scale(val);
+        return this;
+    };
+
+    /**
+     * Gets the mid x, y of the Mohini canvas regardless of the transform/scale.
+     * @return {array} [x, y]
+     */
+    Mohini.prototype.getMidCoords = function() {
+        var dim = this.svg.node().getBoundingClientRect(),
+            w = dim.right - dim.left,
+            h = dim.bottom - dim.top;
+        return this.transform.apply(this, [w/2, h/2]);
     };
 
     Mohini.Events = Events;

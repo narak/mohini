@@ -13,29 +13,14 @@ var MohiniComponentFactory = (function() {
         factory.components = {};
 
         factory._drag = d3.behavior.drag()
-            .origin(function(d) { return d.scaled; })
+            .origin(function(d) { return d; })
             .on('dragstart', function(d) {
                 d3.event.sourceEvent.stopPropagation();
                 d3.select(this).classed('dragging', true);
             })
             .on('drag', function(d) {
-                d.scaled.x = d3.event.x;
-                d.scaled.y = d3.event.y;
-
-                // If you transform the group, all the group children take their
-                // positions in relation to the group's position.
-                d.el.group.attr('transform', 'translate(' + d.scaled.x + ', ' + d.scaled.y + ')');
-
-                var component = Component.get(this.getAttribute('uuid')),
-                    uuid;
-                component._dirty = true;
-
-                for (uuid in component.connectors.startsAt) {
-                    component.connectors.startsAt[uuid].refresh();
-                }
-                for (uuid in component.connectors.endsAt) {
-                    component.connectors.endsAt[uuid].refresh();
-                }
+                var component = Component.get(this.getAttribute('uuid'));
+                component && component.moveTo(d3.event.x, d3.event.y)
             })
             .on('dragend', function(d) {
                 d3.select(this).classed('dragging', false);
@@ -52,20 +37,25 @@ var MohiniComponentFactory = (function() {
             // Give components local event capability.
             extend(self, new PubSub);
 
-            self.scaled = {};
-            self.uuid = uuid;
-            self.scaled.x = data.x;
-            self.scaled.y = data.y;
-            self.scaled.w = data.w;
-            self.scaled.h = data.h;
-            self.scaled.r = data.r || 5;
-            self.scaled.fs = data.fs || 10;
-            self.scaled.fdx = data.fdx || data.w / 2;
-            self.scaled.fdy = data.fdy || 25;
-            self.scaled.cx = data.cx || 25;
-            self.scaled.cy = data.cy || 35;
-            self.scaled.cr = data.cr || 5;
-            self.name = data.name || uuid;
+            if (!data.x || !data.y) {
+                var mid = mohini.getMidCoords();
+                data.x = data.x || mid[0];
+                data.y = data.y || mid[1];
+            }
+
+            // Extend self with defaults and then the input data.
+            extend(self, {
+                uuid: uuid,
+                r: 5,
+                fs: 10,
+                fdx: data.w/2,
+                fdy: 25,
+                cx: 25,
+                cy: 35,
+                cr: 5,
+                name: uuid
+            }, data);
+
             self._dirty = true;
 
             self.connectors = { startsAt: {}, endsAt: {} };
@@ -73,9 +63,9 @@ var MohiniComponentFactory = (function() {
             var group = factory.container.append('g')
                     .data([self])
                     .attr('uuid', uuid)
-                    .attr('x', function(d) { return d.scaled.x; })
-                    .attr('y', function(d) { return d.scaled.y; })
-                    .attr('transform', function(d) { return 'translate(' + d.scaled.x + ', ' + d.scaled.y + ')'; })
+                    .attr('x', function(d) { return d.x; })
+                    .attr('y', function(d) { return d.y; })
+                    .attr('transform', function(d) { return 'translate(' + d.x + ', ' + d.y + ')'; })
                     .call(factory._drag);
 
             group.on('click.moveToFront', function() {
@@ -89,21 +79,21 @@ var MohiniComponentFactory = (function() {
             self.el = {
                 box: group.append('rect')
                     .attr('class', 'component')
-                    .attr('width', function(d) { return d.scaled.w; })
-                    .attr('height', function(d) { return d.scaled.h; })
-                    .attr('rx', self.scaled.r)
+                    .attr('width', function(d) { return d.w; })
+                    .attr('height', function(d) { return d.h; })
+                    .attr('rx', self.r)
                     .style({
                         'stroke-width': 1 + 'px'
                     })
-                    .attr('ry', self.scaled.r),
+                    .attr('ry', self.r),
 
                 label: group.append('text')
-                    .attr('width', function(d) { return d.scaled.w; })
-                    .attr('height', function(d) { return d.scaled.h; })
-                    .attr('dx',  function(d) { return d.scaled.fdx; })
-                    .attr('dy',  function(d) { return d.scaled.fdy; })
+                    .attr('width', function(d) { return d.w; })
+                    .attr('height', function(d) { return d.h; })
+                    .attr('dx',  function(d) { return d.fdx; })
+                    .attr('dy',  function(d) { return d.fdy; })
                     .attr('text-anchor', 'middle')
-                    .style('font', self.scaled.fs + 'px ' + (self.ff || 'sans-serif'))
+                    .style('font', self.fs + 'px ' + (self.ff || 'sans-serif'))
                     .text(function(d) { return d.name || self.uuid; }),
 
                 group: group
@@ -139,6 +129,30 @@ var MohiniComponentFactory = (function() {
             }
 
             return this._xy;
+        };
+
+        Component.prototype.remove = function() {
+            each(this.connectors.startsAt, function(c) {
+                c.remove();
+            });
+            each(this.connectors.endsAt, function(c) {
+                c.remove();
+            });
+            each(this.el, function(ele) {
+                ele.remove();
+            });
+            delete factory.components[self.uuid];
+        };
+
+        Component.prototype.moveTo = function(x, y) {
+            // If you transform the group, all the group children take their
+            // positions in relation to the group's position.
+            this.x = x;
+            this.y = y;
+            this.el.group.attr('transform', 'translate(' + x + ', ' + y + ')');
+            this._dirty = true;
+            each(this.connectors.startsAt, function(c) { c.refresh(); });
+            each(this.connectors.endsAt, function(c) { c.refresh(); });
         };
 
         Component.get = function(uuid) {

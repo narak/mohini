@@ -4,7 +4,11 @@
 var MohiniConnectorFactory = (function() {
     var body = d3.select(document.body);
 
-    var defsContainer = body.append('svg').append("defs");
+    var defsContainer = body.append('svg')
+        .attr('width', 0)
+        .attr('height', 0)
+        .append("defs");
+
     defsContainer.append("marker")
         .attr("id", "markerEnd")
         .attr("refX", 1.5)
@@ -265,6 +269,15 @@ var MohiniConnectorFactory = (function() {
             this.centroidToEdge();
             this.el.attr('d', this._diagonal);
             return this;
+        };
+
+        Connector.prototype.remove = function() {
+            this.el.remove();
+            delete this._startsAt.component.connectors.startsAt[this.uuid];
+            delete this._endsAt.component.connectors.endsAt[this.uuid];
+            delete this._startsAt.component;
+            delete this._endsAt.component
+            delete factory.connectors[self.uuid];
         };
 
         Connector.connect = function(component, dest) {
