@@ -254,10 +254,25 @@ var MohiniConnectorFactory = (function() {
         };
 
         Connector.prototype.render = function() {
-            if (!mohini._drawConnector || this._rendered) return;
+            if (!mohini._drawConnector) return;
+
             this.centroidToEdge();
+
+            if (!this._rendered) {
+                this.el.attr('opacity', 0);
+            }
+
             factory.container.node().appendChild(this.el.node());
             this.el.attr('d', this._diagonal);
+
+            if (!this._rendered) {
+                this.el.transition()
+                    .delay(200)
+                    .duration(500)
+                    .attr('opacity', 1);
+                this._rendered = true;
+            }
+
             return this;
         };
 

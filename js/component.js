@@ -161,7 +161,13 @@ var MohiniComponentFactory = (function() {
 
         Component.prototype.render = function() {
             if (this._rendered) return this;
+
+            this.el.group.attr('opacity', 0);
             factory.container.node().appendChild(this.el.group.node());
+
+            this.el.group.transition()
+                .duration(500)
+                .attr('opacity', 1);
             this._rendered = true;
         };
 

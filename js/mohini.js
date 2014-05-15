@@ -5,6 +5,11 @@
 // Grouping.
 // Meta information on a component/connector.
 // Image support for components.
+//
+// Make Mohini the event dispatcher and remove the pubsub from component and
+// connectors to simplify logic.
+// Component/connectors/etc. should be able to add events to the list of Mohini
+// events so other can subscribe.
 
 var Mohini = (function() {
     var Mohini,
