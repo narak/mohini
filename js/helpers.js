@@ -38,6 +38,10 @@ function extend(obj) {
     return obj;
 };
 
+function createSVGElement(element) {
+    return document.createElementNS('http://www.w3.org/2000/svg', element);
+}
+
 // Because d3 doesn't do event delagation... dafaq.
 var matchesSelector = (function() {
     var el = document.documentElement,

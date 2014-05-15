@@ -19,23 +19,6 @@ var MohiniConnectorFactory = (function() {
         .append("path")
             .attr("d", "M 0,0 V 3 L3,1.5 Z");
 
-    // defsContainer.append("marker")
-    //     .attr("id", "markerMid")
-    //     .attr("refX", 10)
-    //     .attr("refY", 10)
-    //     .attr("markerWidth", 7)
-    //     .attr("markerHeight", 7)
-    //     .attr("orient", "auto")
-    //     .attr("markerUnits", "strokeWidth")
-    //     .style({
-    //         'stroke': 'none',
-    //         'fill': '#000000'
-    //     })
-    //     .append("circle")
-    //         .attr("cx", 10)
-    //         .attr('cy', 10)
-    //         .attr('r', 10);
-
     defsContainer.append("marker")
         .attr("id", "markerStart")
         .attr("refX", 2.5)
@@ -90,11 +73,10 @@ var MohiniConnectorFactory = (function() {
                 .projection(function(d) { return [d.y, d.x]; });
 
             // Start connector.
-            self.el = factory.container.append('path')
+            self.el = d3.select(createSVGElement('path'))
                 .attr('class', 'connector')
                 .attr('uuid', uuid)
                 .attr("marker-start", "url(#markerStart)")
-                //.attr("marker-mid", "url(#markerMid)")
                 .attr("marker-end", "url(#markerEnd)");
 
             return self;
@@ -272,8 +254,9 @@ var MohiniConnectorFactory = (function() {
         };
 
         Connector.prototype.render = function() {
-            if (!mohini._drawConnector) return;
+            if (!mohini._drawConnector || this._rendered) return;
             this.centroidToEdge();
+            factory.container.node().appendChild(this.el.node());
             this.el.attr('d', this._diagonal);
             return this;
         };

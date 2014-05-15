@@ -32,7 +32,9 @@ var MohiniComponentFactory = (function() {
             }
 
             var uuid = generateUUID('comp'),
-                self = this;
+                self = this,
+                render = !!data.render;
+            delete data.render;
 
             // Give components local event capability.
             extend(self, new PubSub);
@@ -60,11 +62,9 @@ var MohiniComponentFactory = (function() {
 
             self.connectors = { startsAt: {}, endsAt: {} };
 
-            var group = factory.container.append('g')
+            var group = d3.select(createSVGElement('g'))
                     .data([self])
                     .attr('uuid', uuid)
-                    .attr('x', function(d) { return d.x; })
-                    .attr('y', function(d) { return d.y; })
                     .attr('transform', function(d) { return 'translate(' + d.x + ', ' + d.y + ')'; })
                     .call(factory._drag);
 
@@ -98,8 +98,12 @@ var MohiniComponentFactory = (function() {
 
                 group: group
             };
-
             factory.components[uuid] = self;
+
+            if (render) {
+                this.render();
+            }
+
             return self;
         }
 
@@ -153,6 +157,12 @@ var MohiniComponentFactory = (function() {
             this._dirty = true;
             each(this.connectors.startsAt, function(c) { c.refresh(); });
             each(this.connectors.endsAt, function(c) { c.refresh(); });
+        };
+
+        Component.prototype.render = function() {
+            if (this._rendered) return this;
+            factory.container.node().appendChild(this.el.group.node());
+            this._rendered = true;
         };
 
         Component.get = function(uuid) {
