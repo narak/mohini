@@ -11,46 +11,34 @@ var MohiniConnectorFactory = (function() {
 
     defsContainer.append("marker")
         .attr("id", "markerEnd")
-        .attr("refX", 1.5)
+        .attr("refX", 2)
         .attr("refY", 1.5)
-        .attr("markerWidth", 7)
-        .attr("markerHeight", 7)
+        .attr("markerWidth", 3)
+        .attr("markerHeight", 3)
         .attr("orient", "auto")
-        .style({
-            'stroke': 'none',
-            'fill': '#000000'
-        })
-        .append("circle")
-            .attr("cx", 1.5)
-            .attr('cy', 1.5)
-            .attr('r', 1.5);
-        // .attr("refX", 3)
-        // .attr("refY", 1.5)
-        // .attr("markerWidth", 3)
-        // .attr("markerHeight", 3)
-        // .attr("orient", "auto")
-        // .append("path")
-        //     .attr("d", "M 0,0 V 3 L3,1.5 Z");
+        .append("path")
+            .attr("d", "M 0,0 V 3 L3,1.5 Z");
 
-    defsContainer.append("marker")
-        .attr("id", "markerMid")
-        .attr("refX", 10)
-        .attr("refY", 10)
-        .attr("markerWidth", 7)
-        .attr("markerHeight", 7)
-        .attr("orient", "auto")
-        .style({
-            'stroke': 'none',
-            'fill': '#000000'
-        })
-        .append("circle")
-            .attr("cx", 10)
-            .attr('cy', 10)
-            .attr('r', 10);
+    // defsContainer.append("marker")
+    //     .attr("id", "markerMid")
+    //     .attr("refX", 10)
+    //     .attr("refY", 10)
+    //     .attr("markerWidth", 7)
+    //     .attr("markerHeight", 7)
+    //     .attr("orient", "auto")
+    //     .attr("markerUnits", "strokeWidth")
+    //     .style({
+    //         'stroke': 'none',
+    //         'fill': '#000000'
+    //     })
+    //     .append("circle")
+    //         .attr("cx", 10)
+    //         .attr('cy', 10)
+    //         .attr('r', 10);
 
     defsContainer.append("marker")
         .attr("id", "markerStart")
-        .attr("refX", 1.5)
+        .attr("refX", 2.5)
         .attr("refY", 1.5)
         .attr("markerWidth", 7)
         .attr("markerHeight", 7)
@@ -106,7 +94,7 @@ var MohiniConnectorFactory = (function() {
                 .attr('class', 'connector')
                 .attr('uuid', uuid)
                 .attr("marker-start", "url(#markerStart)")
-                .attr("marker-mid", "url(#markerMid)")
+                //.attr("marker-mid", "url(#markerMid)")
                 .attr("marker-end", "url(#markerEnd)");
 
             return self;
@@ -165,10 +153,11 @@ var MohiniConnectorFactory = (function() {
                 .render();
         };
 
-        factory._drawConnector = true;
+        mohini._drawConnector = true;
+        mohini._edgeOffset = 4;
         Connector.prototype.centroidToEdge = function() {
 
-            if (this._startsAt.component && this._endsAt.component && factory._drawConnector) {
+            if (this._startsAt.component && this._endsAt.component && mohini._drawConnector) {
                 // Calc slope
                 var comp1 = this._startsAt.coords,
                     comp2 = this._endsAt.coords,
@@ -189,12 +178,12 @@ var MohiniConnectorFactory = (function() {
                 if (dirXWise) {
                     // If dx ix -ve we use comp1's right edge and comp2's left edge.
                     if (dx < 0) {
-                        x1 = comp1[2].x2;
-                        x2 = comp2[2].x1;
+                        x1 = comp1[2].x2 + mohini._edgeOffset;
+                        x2 = comp2[2].x1 - mohini._edgeOffset;
                     // If dx ix +ve we use comp1's left edge and comp2's right edge.
                     } else {
-                        x1 = comp1[2].x1;
-                        x2 = comp2[2].x2;
+                        x1 = comp1[2].x1 - mohini._edgeOffset;
+                        x2 = comp2[2].x2 + mohini._edgeOffset;
                     }
                     y1 = slope ? lineEqn(x1, null, slope, c) : comp1[1];
                     y2 = slope ? lineEqn(x2, null, slope, c) : comp2[1];
@@ -223,12 +212,12 @@ var MohiniConnectorFactory = (function() {
                 } else {
                     // If dy is +ve we use comp1's bottom edge and comp2's top edge.
                     if (dy > 0) {
-                        y1 = comp1[2].y1;
-                        y2 = comp2[2].y2;
+                        y1 = comp1[2].y1 - mohini._edgeOffset;
+                        y2 = comp2[2].y2 + mohini._edgeOffset;
                     // If dy is +ve we use comp1's top edge and comp2's bottom edge.
                     } else {
-                        y1 = comp1[2].y2;
-                        y2 = comp2[2].y1;
+                        y1 = comp1[2].y2 + mohini._edgeOffset;
+                        y2 = comp2[2].y1 - mohini._edgeOffset;
                     }
                     x1 = slope ? lineEqn(null, y1, slope, c) : comp1[0];
                     x2 = slope ? lineEqn(null, y2, slope, c) : comp2[0];
@@ -254,18 +243,33 @@ var MohiniConnectorFactory = (function() {
                     }
                 }
 
-                this._diagonal.source({
-                    x: y1,
-                    y: x1
-                }).target({
-                    x: y2,
-                    y: x2
-                });
+                // Why the x and y attributes interchange is very confusing to explain
+                // considering I barely understand it.
+                // @see d3js diagonal examples.
+                if (dirXWise) {
+                    this._diagonal.source({
+                        x: y1,
+                        y: x1
+                    }).target({
+                        x: y2,
+                        y: x2
+                    })
+                    .projection(function(d) { return [d.y, d.x]; });
+                } else {
+                    this._diagonal.source({
+                        x: x1,
+                        y: y1
+                    }).target({
+                        x: x2,
+                        y: y2
+                    })
+                    .projection(function(d) { return [d.x, d.y]; });
+                }
             }
         };
 
         Connector.prototype.render = function() {
-            if (!factory._drawConnector) return;
+            if (!mohini._drawConnector) return;
             this.centroidToEdge();
             this.el.attr('d', this._diagonal);
             return this;
@@ -286,10 +290,12 @@ var MohiniConnectorFactory = (function() {
             var connector;
 
             if (component && dest) {
-                connector = new Connector()
-                    .startsAt({ component: component })
-                    .endsAt({ component: dest })
-                    .render();
+                if (component !== dest) {
+                    connector = new Connector()
+                        .startsAt({ component: component })
+                        .endsAt({ component: dest })
+                        .render();
+                }
             } else {
                 // Start connector.
                 if (!Connector._connector) {

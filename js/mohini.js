@@ -1,5 +1,7 @@
 // [TODO]
 // Figure out how mid markers aren't working.
+// - Apparently unless you have straight lines marker-mids don't work. dafaq.
+//   SO fuck them. Fixed marker ends with funky orientation changes in centroidToEdge.
 // Grouping.
 // Meta information on a component/connector.
 // Image support for components.

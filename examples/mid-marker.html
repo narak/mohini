@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-50 -100 200 200">
+<defs>
+  <marker id='mid' orient="auto"
+    markerWidth='2' markerHeight='4'
+    refX='0.1' refY='1'>
+    <!-- triangle pointing right (+x) -->
+    <path d='M0,0 V2 L1,1 Z' fill="orange"/>
+  </marker>
+  <marker id='head' orient="auto"
+    markerWidth='2' markerHeight='4'
+    refX='0.1' refY='2'>
+    <!-- triangle pointing right (+x) -->
+    <path d='M0,0 V4 L2,2 Z' fill="red"/>
+  </marker>
+</defs>
+
+<g transform="scale(.4)">
+<path
+  id='arrow-line'
+  marker-mid='url(#mid)'
+  marker-end='url(#head)'
+  stroke-width='5'
+  fill='none' stroke='black'
+  d='M0,0 L20,20 C40,40 40,40 60,20 L80,0'
+  />
+
+<path
+  id='arrow-line'
+  marker-mid='url(#mid)'
+  marker-end='url(#head)'
+  stroke-width='5'
+  fill='none' stroke='black'
+  d='M302,100.11 L292,80.11 C197.5,100.11 197.5,25.88 93,25.88'
+  />
+</g>
+</svg>

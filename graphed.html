@@ -115,10 +115,9 @@ button:active {
 <script src='js/connector.js'></script>
 <script>
 var comps = [], conns = [],
-    compCount = 14,
+    compCount = 21,
     perRow = 7,
-    distance = 120,
-    conn;
+    distance = 120;
 
 var mohini = new Mohini({
     container: document.getElementById('svg-container'),
@@ -137,11 +136,8 @@ for (var i = 0; i < compCount; i++) {
     }));
 }
 
-for (var j = compCount - 8; j >= 0; j--) {
-    conn = new mohini.Connector()
-        .startsAt({ component: comps[10] })
-        .endsAt({ component: comps[j], render: true })
-    conns.push(conn);
+for (var j = compCount - 1; j >= 0; j--) {
+    conns.push(mohini.connect(comps[10], comps[j]));
 }
 
 function remove() {
