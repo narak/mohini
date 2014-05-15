@@ -18,7 +18,7 @@ var Mohini = (function() {
         extend(self, new PubSub);
 
         self._zoom = d3.behavior.zoom()
-            .scaleExtent([.1, 10])
+            //.scaleExtent([.1, 10]) // Uncomment to change unlimited zoom to limited zoom.
             .on('zoom', function() {
                 self.container.attr('transform', 'translate(' + d3.event.translate + ') scale(' + d3.event.scale + ')');
             });
