@@ -1,3 +1,9 @@
+// [TODO]
+// Figure out how mid markers aren't working.
+// Grouping.
+// Meta information on a component/connector.
+// Image support for components.
+
 var Mohini = (function() {
     var Mohini,
         Events = {
