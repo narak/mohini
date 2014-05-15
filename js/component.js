@@ -14,14 +14,13 @@ var drag = d3.behavior.drag()
 
             var component = Component.get(this.getAttribute('uuid')),
                 uuid;
+            component._dirty = true;
 
             for (uuid in component.connectors.startsAt) {
-                component.connectors.startsAt[uuid]
-                    .startsAt({ update: true, render: true });
+                component.connectors.startsAt[uuid].refresh();
             }
             for (uuid in component.connectors.endsAt) {
-                component.connectors.endsAt[uuid]
-                    .endsAt({ update: true, render: true });
+                component.connectors.endsAt[uuid].refresh();
             }
         })
         .on('dragend', function(d) {
@@ -37,18 +36,19 @@ function Component(data) {
 
     self.scaled = {};
     self.uuid = uuid;
-    self.scaled.x = scaleToInitialZoom(data.x);
-    self.scaled.y = scaleToInitialZoom(data.y);
-    self.scaled.w = scaleToInitialZoom(data.w);
-    self.scaled.h = scaleToInitialZoom(data.h);
-    self.scaled.r = scaleToInitialZoom(data.r || 5);
-    self.scaled.fs = scaleToInitialZoom(data.fs || 10);
-    self.scaled.fdx = scaleToInitialZoom(data.w / 2);
-    self.scaled.fdy = scaleToInitialZoom(25);
-    self.scaled.cx = scaleToInitialZoom(25);
-    self.scaled.cy = scaleToInitialZoom(35);
-    self.scaled.cr = scaleToInitialZoom(data.cr || 5);
+    self.scaled.x = data.x;
+    self.scaled.y = data.y;
+    self.scaled.w = data.w;
+    self.scaled.h = data.h;
+    self.scaled.r = data.r || 5;
+    self.scaled.fs = data.fs || 10;
+    self.scaled.fdx = data.w / 2;
+    self.scaled.fdy = 25;
+    self.scaled.cx = 25;
+    self.scaled.cy = 35;
+    self.scaled.cr = data.cr || 5;
     self.name = data.l;
+    self._dirty = true;
 
     self.connectors = { startsAt: {}, endsAt: {} };
 
@@ -58,7 +58,6 @@ function Component(data) {
             .attr('x', function(d) { return d.scaled.x; })
             .attr('y', function(d) { return d.scaled.y; })
             .attr('transform', function(d) { return 'translate(' + d.scaled.x + ', ' + d.scaled.y + ')'; })
-            //.call(ConnectorPlugin)
             .call(drag);
 
     group.on('click.moveToFront', function() {
@@ -76,7 +75,7 @@ function Component(data) {
             .attr('height', function(d) { return d.scaled.h; })
             .attr('rx', self.scaled.r)
             .style({
-                'stroke-width': scaleToInitialZoom(1) + 'px'
+                'stroke-width': 1 + 'px'
             })
             .attr('ry', self.scaled.r),
 
@@ -89,12 +88,6 @@ function Component(data) {
             .style('font', self.scaled.fs + 'px ' + (self.ff || 'sans-serif'))
             .text(function(d) { return d.name || self.uuid; }),
 
-        // endpoint: group.append('circle')
-        //     .attr('class', 'connector-point')
-        //     .attr('cx', function(d) { return d.scaled.cx; })
-        //     .attr('cy', function(d) { return d.scaled.cy; })
-        //     .attr('r',  function(d) { return d.scaled.cr; }),
-
         group: group
     };
 
@@ -103,27 +96,31 @@ function Component(data) {
 }
 
 Component.prototype.getCoords = function() {
-    var ep = this.el.box.node(),
-        dim = ep.getBoundingClientRect(),
-        xy = translateNScale({
+    if (this._dirty) {
+        var ep = this.el.box.node(),
+            dim = ep.getBoundingClientRect();
+
+        this._xy = translateNScale({
             x: (dim.left + dim.right) / 2,
             y: (dim.top + dim.bottom) / 2
         });
 
-    translateNScale(dim.left, dim.top, dim);
-    dim.x1 = dim.x;
-    dim.y1 = dim.y;
+        translateNScale(dim.left, dim.top, dim);
+        dim.x1 = dim.x;
+        dim.y1 = dim.y;
 
-    translateNScale(dim.right, dim.bottom, dim);
-    dim.x2 = dim.x;
-    dim.y2 = dim.y;
+        translateNScale(dim.right, dim.bottom, dim);
+        dim.x2 = dim.x;
+        dim.y2 = dim.y;
 
-    delete dim.x;
-    delete dim.y;
+        delete dim.x;
+        delete dim.y;
 
-    xy.push(dim);
+        this._xy.push(dim);
+        this._dirty = false;
+    }
 
-    return xy;
+    return this._xy;
 };
 
 Component.get = function(uuid) {

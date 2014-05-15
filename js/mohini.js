@@ -1,8 +1,8 @@
 // Add fn to d3.
 d3.selection.prototype.moveToFront = function() {
-  return this.each(function(){
-    this.parentNode.appendChild(this);
-  });
+    return this.each(function(){
+        this.parentNode.appendChild(this);
+    });
 };
 
 // The coordinates need to be translated and scaled because, presumably,
@@ -32,26 +32,18 @@ var translateNScale = function(xy, y, obj) {
     return [x, y];
 };
 
-var defaultZoom = 1,
-    zoom = d3.behavior.zoom()
-    .scaleExtent([.1, 10])
-    .on('zoom', function() {
-        container.attr('transform', 'translate(' + d3.event.translate + ') scale(' + d3.event.scale + ')');
-    });
-
-var svg = d3.select('#svg-container').append('svg')
+var zoom = d3.behavior.zoom()
+        .scaleExtent([.1, 10])
+        .on('zoom', function() {
+            container.attr('transform', 'translate(' + d3.event.translate + ') scale(' + d3.event.scale + ')');
+        }),
+    svg = d3.select('#svg-container').append('svg')
         .call(zoom),
     container = svg.append('g'),
     connectorContainer = container.append('g'),
     compContainer = container.append('g');
 
-
-// Set the initial visual zoom.
-container.attr('transform', 'translate(0,0)scale(' + defaultZoom + ')');
-// This sets the internal values for d3 so it doesn't jump when you do an actual zoom.
-zoom.translate([0,0]).scale(defaultZoom);
-
-function scaleToInitialZoom(val) {
-    return val;
-    //return (val / defaultZoom).toFixed(3);
+function zoomTo(val) {
+    container.attr('transform', 'translate(0,0) scale(' + val + ')');
+    zoom.translate([0, 0]).scale(val);
 }

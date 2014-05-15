@@ -131,6 +131,12 @@ Connector.prototype.updateAt = function(at, diagProp, opts) {
     return this;
 };
 
+Connector.prototype.refresh = function() {
+    this.startsAt({ update: true })
+        .endsAt({ update: true })
+        .render();
+};
+
 function lineEqn(x, y, m, c) {
     if (!y) {
         return m * x + c;
@@ -151,10 +157,10 @@ Connector.prototype.centroidToEdge = function() {
 
     if (this._startsAt.component && this._endsAt.component && drawLine) {
         // Calc slope
-        var p1 = this._startsAt.coords,
-            p2 = this._endsAt.coords,
-            dx = p1[0] - p2[0],
-            dy = p1[1] - p2[1],
+        var comp1 = this._startsAt.coords,
+            comp2 = this._endsAt.coords,
+            dx = comp1[0] - comp2[0],
+            dy = comp1[1] - comp2[1],
             slope = dy / dx,
             mdx = dx < 0 ? ~ dx + 1 : dx,
             mdy = dy < 0 ? ~ dy + 1 : dy,
@@ -164,74 +170,74 @@ Connector.prototype.centroidToEdge = function() {
         if (slope === Infinity || slope === -Infinity || slope === 0) {
             slope = undefined;
         }
-        c = lineEqn(p1[0], p1[1], slope);
+        c = lineEqn(comp1[0], comp1[1], slope);
 
         // If direction is x wise, we need to find the y coordinates.
         if (dirXWise) {
-            // If dx ix -ve we use p1's right edge and p2's left edge.
+            // If dx ix -ve we use comp1's right edge and comp2's left edge.
             if (dx < 0) {
-                x1 = p1[2].x2;
-                x2 = p2[2].x1;
-            // If dx ix +ve we use p1's left edge and p2's right edge.
+                x1 = comp1[2].x2;
+                x2 = comp2[2].x1;
+            // If dx ix +ve we use comp1's left edge and comp2's right edge.
             } else {
-                x1 = p1[2].x1;
-                x2 = p2[2].x2;
+                x1 = comp1[2].x1;
+                x2 = comp2[2].x2;
             }
-            y1 = slope ? lineEqn(x1, null, slope, c) : p1[1];
-            y2 = slope ? lineEqn(x2, null, slope, c) : p2[1];
+            y1 = slope ? lineEqn(x1, null, slope, c) : comp1[1];
+            y2 = slope ? lineEqn(x2, null, slope, c) : comp2[1];
 
             // If the calculated y1 or y2 are too close to the rect top/bottom
             // we snap it to a quarter of a way down or up from either of them
             // so the connectors stay away from the corners.
 
-            h = p1[2].y2 - p1[2].y1;
+            h = comp1[2].y2 - comp1[2].y1;
             quart = h / 4;
-            if (y1 > p1[2].y2 - quart) {
-                y1 = p1[2].y2 - quart;
-            } else if (y1 < p1[2].y1 + quart) {
-                y1 = p1[2].y1 + quart;
+            if (y1 > comp1[2].y2 - quart) {
+                y1 = comp1[2].y2 - quart;
+            } else if (y1 < comp1[2].y1 + quart) {
+                y1 = comp1[2].y1 + quart;
             }
 
-            h = p2[2].y2 - p2[2].y1;
+            h = comp2[2].y2 - comp2[2].y1;
             quart = h / 4;
-            if (y2 > p2[2].y2 - quart) {
-                y2 = p2[2].y2 - quart;
-            } else if (y1 < p2[2].y1 + quart) {
-                y2 = p2[2].y1 + quart;
+            if (y2 > comp2[2].y2 - quart) {
+                y2 = comp2[2].y2 - quart;
+            } else if (y1 < comp2[2].y1 + quart) {
+                y2 = comp2[2].y1 + quart;
             }
 
         // If direction is y wise, we need to find the x coordinates.
         } else {
-            // If dy is +ve we use p1's bottom edge and p2's top edge.
+            // If dy is +ve we use comp1's bottom edge and comp2's top edge.
             if (dy > 0) {
-                y1 = p1[2].y1;
-                y2 = p2[2].y2;
-            // If dy is +ve we use p1's top edge and p2's bottom edge.
+                y1 = comp1[2].y1;
+                y2 = comp2[2].y2;
+            // If dy is +ve we use comp1's top edge and comp2's bottom edge.
             } else {
-                y1 = p1[2].y2;
-                y2 = p2[2].y1;
+                y1 = comp1[2].y2;
+                y2 = comp2[2].y1;
             }
-            x1 = slope ? lineEqn(null, y1, slope, c) : p1[0];
-            x2 = slope ? lineEqn(null, y2, slope, c) : p2[0];
+            x1 = slope ? lineEqn(null, y1, slope, c) : comp1[0];
+            x2 = slope ? lineEqn(null, y2, slope, c) : comp2[0];
 
             // If the calculated x1 or x2 are too close to the rect left/right
             // we snap it to a quarter of a way left or right from either of them
             // so the connectors stay away from the corners.
 
-            w = p1[2].x2 - p1[2].x1;
+            w = comp1[2].x2 - comp1[2].x1;
             quart = w / 4;
-            if (x1 > p1[2].x2 - quart) {
-                x1 = p1[2].x2 - quart;
-            } else if (x1 < p1[2].x1 + quart) {
-                x1 = p1[2].x1 + quart;
+            if (x1 > comp1[2].x2 - quart) {
+                x1 = comp1[2].x2 - quart;
+            } else if (x1 < comp1[2].x1 + quart) {
+                x1 = comp1[2].x1 + quart;
             }
 
-            w = p2[2].x2 - p2[2].x1;
+            w = comp2[2].x2 - comp2[2].x1;
             quart = w / 4;
-            if (x2 > p2[2].x2 - quart) {
-                x2 = p2[2].x2 - quart;
-            } else if (x1 < p2[2].x1 + quart) {
-                x2 = p2[2].x1 + quart;
+            if (x2 > comp2[2].x2 - quart) {
+                x2 = comp2[2].x2 - quart;
+            } else if (x1 < comp2[2].x1 + quart) {
+                x2 = comp2[2].x1 + quart;
             }
         }
 
