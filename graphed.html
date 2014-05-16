@@ -150,23 +150,20 @@ for (var j = compCount - 1; j >= 0; j--) {
     conns.push(conn);
 }
 
-function remove() {
-    comps[compCount - 1].remove();
+function destroy() {
+    comps[compCount - 1].destroy();
 }
 
-var clickHandle, started = false,
+var started = false,
     addConnector = function() {
-        if (clickHandle) {
-            mohini.Component.off(clickHandle);
-            clickHandle = null;
-        }
-        clickHandle = mohini.Component.on('click', function(component) {
+        mohini.Component.off('click.addConnector');
+
+        mohini.Component.on('click.addConnector', function(component) {
             if (!started) {
                 mohini.connect(component);
             } else {
                 mohini.connect(component);
-                mohini.Component.off(clickHandle);
-                clickHandle = null;
+                mohini.Component.off('click.addConnector');
             }
             started = !started;
         });
@@ -180,13 +177,14 @@ var addComponent = function() {
                 y: -1000,
                 //l: prompt('Name:'),
                 render: true
-            }),
-            handle = c.on('click', function(evt) {
-                c.off(handle);
-                d3.select(document.body).on('mousemove.addComponent', null);
-                c.moveTo.apply(c, mohini.transform(evt.x - 25, evt.y - 30));
-                handle = null;
             });
+
+        c.on('click.addComponent', function(evt) {
+            c.off('click.addComponent');
+            d3.select(document.body).on('mousemove.addComponent', null);
+            c.moveTo.apply(c, mohini.transform(evt.x - 25, evt.y - 30));
+        });
+
         d3.select(document.body).on('mousemove.addComponent', function() {
             c.moveTo.apply(c, mohini.transform(d3.event.x - 25, d3.event.y - 30));
         });
@@ -194,10 +192,12 @@ var addComponent = function() {
 
 d3.select(document).on('keyup', function() {
     var evt = d3.event;
+
     if (evt.shiftKey && (evt.keyCode === 100 || evt.keyCode === 68)) {
         console.log('Creating component...');
         addComponent();
     }
+
     if (evt.shiftKey && (evt.keyCode === 102 || evt.keyCode === 70)) {
         console.log('Creating connection...');
         addConnector();

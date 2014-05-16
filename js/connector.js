@@ -86,15 +86,15 @@ var MohiniConnectorFactory = (function() {
             return self;
         }
 
-        Connector.prototype.startsAt = function(opts) {
-            return this.updateAt.call(this, 'startsAt', 'source', opts);
+        Connector.prototype.from = function(opts) {
+            return this.updateCoords.call(this, 'from', 'source', opts);
         };
 
-        Connector.prototype.endsAt = function(opts) {
-            return this.updateAt.call(this, 'endsAt', 'target', opts);
+        Connector.prototype.to = function(opts) {
+            return this.updateCoords.call(this, 'to', 'target', opts);
         };
 
-        Connector.prototype.updateAt = function(at, diagProp, opts) {
+        Connector.prototype.updateCoords = function(at, diagProp, opts) {
             opts = opts || {};
 
             var coords,
@@ -106,9 +106,11 @@ var MohiniConnectorFactory = (function() {
                 this[thisProp].component = opts.component;
                 coords = this[thisProp].coords = opts.component.getCoords();
                 opts.component.connectors[at][this.uuid] = this;
+
             } else if (opts.coords) {
                 coords = this[thisProp].coords = opts.coords;
                 delete this[thisProp].component;
+
             } else if (opts.update && this[thisProp].coords) {
                 if (this[thisProp].component) {
                     coords = this[thisProp].coords = this[thisProp].component.getCoords();
@@ -134,22 +136,22 @@ var MohiniConnectorFactory = (function() {
         };
 
         Connector.prototype.refresh = function() {
-            this.startsAt({ update: true })
-                .endsAt({ update: true })
+            this.from({ update: true })
+                .to({ update: true })
                 .render();
         };
 
         mohini._drawConnector = true;
         mohini._edgeOffset = 4;
-        Connector.prototype.centroidToEdge = function() {
+        Connector.prototype.calcEdgeCoords = function() {
 
-            if (this._startsAt && this._endsAt
-                && this._startsAt.component && this._endsAt.component
+            if (this._from && this._to
+                && this._from.component && this._to.component
                 && mohini._drawConnector) {
 
                 // Calc slope
-                var comp1 = this._startsAt.coords,
-                    comp2 = this._endsAt.coords,
+                var comp1 = this._from.coords,
+                    comp2 = this._to.coords,
                     dx = comp1[0] - comp2[0],
                     dy = comp1[1] - comp2[1],
                     slope = dy / dx,
@@ -260,7 +262,7 @@ var MohiniConnectorFactory = (function() {
         Connector.prototype.render = function() {
             if (!mohini._drawConnector) return;
 
-            this.centroidToEdge();
+            this.calcEdgeCoords();
 
             if (!this._rendered) {
                 this.el.attr('opacity', .5);
@@ -280,19 +282,19 @@ var MohiniConnectorFactory = (function() {
             return this;
         };
 
-        Connector.prototype.remove = function() {
-            this.el.remove();
-            if (this._startsAt) {
-                if (this._startsAt.component) {
-                    delete this._startsAt.component.connectors.startsAt[this.uuid];
+        Connector.prototype.destroy = function() {
+            this.el.destroy();
+            if (this._from) {
+                if (this._from.component) {
+                    delete this._from.component.connectors.from[this.uuid];
                 }
-                delete this._startsAt;
+                delete this._from;
             }
-            if (this._endsAt) {
-                if (this._endsAt.component) {
-                    delete this._endsAt.component.connectors.endsAt[this.uuid];
+            if (this._to) {
+                if (this._to.component) {
+                    delete this._to.component.connectors.to[this.uuid];
                 }
-                delete this._endsAt;
+                delete this._to;
             }
             delete factory.connectors[self.uuid];
         };
@@ -305,17 +307,17 @@ var MohiniConnectorFactory = (function() {
             if (component && dest) {
                 if (component !== dest) {
                     connector = new Connector()
-                        .startsAt({ component: component })
-                        .endsAt({ component: dest });
+                        .from({ component: component })
+                        .to({ component: dest });
                 }
             } else {
                 // Start connector.
                 if (!Connector._connector) {
                     connector = Connector._connector = new Connector()
-                        .startsAt({ component: component});
+                        .from({ component: component});
 
                     body.on('mousemove.connectorPoint', function() {
-                        Connector._connector.endsAt({
+                        Connector._connector.to({
                             coords: mohini.transform(d3.event),
                             render: true
                         });
@@ -323,8 +325,8 @@ var MohiniConnectorFactory = (function() {
 
                 // End connector.
                 } else {
-                    if (Connector._connector._startsAt.component != component) {
-                        Connector._connector.endsAt({
+                    if (Connector._connector._from.component != component) {
+                        Connector._connector.to({
                             component: component,
                             render: true
                         });
@@ -332,7 +334,7 @@ var MohiniConnectorFactory = (function() {
 
                         body.on('mousemove.connectorPoint', null);
                     } else {
-                        Connector._connector.remove();
+                        Connector._connector.destroy();
                     }
                 }
             }

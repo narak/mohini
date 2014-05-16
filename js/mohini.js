@@ -1,15 +1,19 @@
 // [TODO]
 // Figure out how mid markers aren't working.
 // - Apparently unless you have straight lines marker-mids don't work. dafaq.
-//   SO fuck them. Fixed marker ends with funky orientation changes in centroidToEdge.
-// Grouping.
-// Meta information on a component/connector.
-// Image support for components.
+//   SO fuck them. Fixed marker ends with funky orientation changes in calcEdgeCoords.
 //
-// Make Mohini the event dispatcher and remove the pubsub from component and
-// connectors to simplify logic.
-// Component/connectors/etc. should be able to add events to the list of Mohini
-// events so other can subscribe.
+// Grouping - Complicated logic, will take time.
+//
+// Meta information on a component/connector - ?
+// Image support for components - ?
+//
+// Events -
+// - DOM Events: Components and connectors should redirect DOM events on their
+//   elements through PubSub so that other can listen to them on the Objects
+//   instead of being aware of its elements and listening on that.
+// - Events[connect, destroy, move, add, etc.]: These events should be used to
+//   communicate between components and connectors, and avoid talking directly.
 
 var Mohini = (function() {
     var Mohini;
@@ -26,7 +30,6 @@ var Mohini = (function() {
         extend(self, new PubSub);
 
         self._zoom = d3.behavior.zoom()
-            //.scaleExtent([.1, 10]) // Uncomment to change unlimited zoom to limited zoom.
             .on('zoom', function() {
                 self.container.attr('transform', 'translate(' + d3.event.translate + ') scale(' + d3.event.scale + ')');
             });

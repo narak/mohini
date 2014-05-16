@@ -2,6 +2,11 @@
  * MohiniComponentFactory
  */
 var MohiniComponentFactory = (function() {
+    // Component events.
+    var Events = {
+        DESTROY: 'destroy'
+
+    };
 
     // Filters.
     var defsContainer = d3.select(document.body).append('svg')
@@ -85,7 +90,7 @@ var MohiniComponentFactory = (function() {
 
             self._dirty = true;
 
-            self.connectors = { startsAt: {}, endsAt: {} };
+            self.connectors = { from: {}, to: {} };
 
             var group = d3.select(createSVGElement('g'))
                     .data([self])
@@ -152,15 +157,15 @@ var MohiniComponentFactory = (function() {
             return this._xy;
         };
 
-        Component.prototype.remove = function() {
-            each(this.connectors.startsAt, function(c) {
-                c.remove();
+        Component.prototype.destroy = function() {
+            each(this.connectors.from, function(c) {
+                c.destroy();
             });
-            each(this.connectors.endsAt, function(c) {
-                c.remove();
+            each(this.connectors.to, function(c) {
+                c.destroy();
             });
             each(this.el, function(ele) {
-                ele.remove();
+                ele.destroy();
             });
             delete factory.components[self.uuid];
         };
@@ -172,8 +177,8 @@ var MohiniComponentFactory = (function() {
             this.y = y;
             this.el.group.attr('transform', 'translate(' + x + ', ' + y + ')');
             this._dirty = true;
-            each(this.connectors.startsAt, function(c) { c.refresh(); });
-            each(this.connectors.endsAt, function(c) { c.refresh(); });
+            each(this.connectors.from, function(c) { c.refresh(); });
+            each(this.connectors.to, function(c) { c.refresh(); });
         };
 
         Component.prototype.render = function() {

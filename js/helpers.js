@@ -38,6 +38,18 @@ function extend(obj) {
     return obj;
 };
 
+function compose() {
+    var args = arguments,
+        self = this;
+    return function() {
+        each(args, function(arg) {
+            if (typeof arg === 'function') {
+                arg.call(self, arguments);
+            }
+        });
+    };
+}
+
 function createSVGElement(element) {
     return document.createElementNS('http://www.w3.org/2000/svg', element);
 }
@@ -68,69 +80,80 @@ var generateUUID = (function() {
  * (https://github.com/phiggins42/bloody-jquery-plugins/blob/master/pubsub.js)
  */
 function PubSub() {
-    this._topics = {};
+    this._listeners = {};
     return this;
 }
 (function() {
     /**
      * Publish an event.
-     * @param topic - Event/topic to be published.
+     * @param event - Event to be published.
      * @param args - Arguments to be passed to the subscribers.
      */
-    PubSub.prototype.trigger = function(topic, args) {
-        if (this._topics[topic]) {
-            var thisTopic = this._topics[topic],
-                thisArgs = args || [];
+    PubSub.prototype.trigger = function(event, args) {
+        if (this._listeners[event]) {
+            var listeners = this._listeners[event],
+                params;
 
-            if (!(thisArgs instanceof Array)) {
-                thisArgs = Array.prototype.slice.call(arguments, 1);
+            if (args) {
+                // If args is not an array, we assume that it trigger was called
+                // like trigger(<event>, arg1, arg2, ...) instead of
+                // trigger(<event>, [arg1, arg2, ...]). So convert all but the
+                // first argument into an array so it can be `apply`ed to the
+                // callback.
+                if (!(args instanceof Array)) {
+                    params = Array.prototype.slice.call(arguments, 1);
+                }
             }
 
-            for (var i = thisTopic.length - 1; i >= 0; i--) {
-                thisTopic[i].callback.apply(thisTopic[i].context, thisArgs);
-            }
+            window.setTimeout(function() {
+                each(listeners, function(listener) {
+                    listener.callback.apply(listener.context, params);
+                });
+            }, 0);
         }
     };
     /**
      * Subscribe to an event.
-     * @param topic - Event/topic to be subscribed to.
-     * @param callback - Function to subscribe to the topic/event.
+     * @param event - Event/event to be subscribed to.
+     * @param callback - Function to subscribe to the event/event.
      */
-    var pubSubGuid = 0;
-    PubSub.prototype.on = function(topic, context, callback) {
-        // Shift params.
-        if (callback === undefined) {
-            callback = context;
-            context = this;
-        }
-        callback.guid = pubSubGuid++;
+    var defaultNS = function(event) {
+        return event + '_DEFAULT';
+    };
+    PubSub.prototype.on = function(eventNNS, callback, context) {
+        context = context || this;
 
-        if (!this._topics[topic]) {
-            this._topics[topic] = [];
+        // So null can be used to detach events.
+        if (!callback) {
+            this.off(eventNNS);
+            return;
         }
-        this._topics[topic].push({
+
+        // Split event.namespace.
+        eventNNS = eventNNS.split('.');
+        var event = eventNNS[0],
+            namespace = eventNNS[1] || defaultNS();
+
+        if (!this._listeners[event]) {
+            this._listeners[event] = {};
+        }
+        this._listeners[event][namespace] = {
             context: context,
-            callback: callback
-        });
-        return {
-            topic: topic,
             callback: callback
         };
     };
     /**
      * Unsubscribe from an event.
-     * @param handle - Handle for the subscription to be removed, returned
-     *                 by subscribe.
+     * @param eventNNS - Event.namespace to be unsubscribed.
      */
-    PubSub.prototype.off = function(handle) {
-        var topic = handle.topic;
-        if (this._topics[topic]) {
-            var thisTopic = this._topics[topic];
-            for (var i = 0; i < thisTopic.length; i++) {
-                if (thisTopic[i].callback === handle.callback) {
-                    thisTopic.splice(i, 1);
-                }
-            }
+    PubSub.prototype.off = function(eventNNS) {
+        // Split event.namespace.
+        eventNNS = eventNNS.split('.');
+        var event = eventNNS[0],
+            namespace = eventNNS[1] || defaultNS();
+
+        if (this._listeners[event] && this._listeners[event][namespace]) {
+            delete this._listeners[event][namespace];
         }
     };
 })();
