@@ -4,8 +4,8 @@
 var MohiniComponentFactory = (function() {
     // Component events.
     var Events = {
-        DESTROY: 'destroy'
-
+        DESTROY: 'destroy',
+        MOVE: 'move'
     };
 
     // Filters.
@@ -90,8 +90,6 @@ var MohiniComponentFactory = (function() {
 
             self._dirty = true;
 
-            self.connectors = { from: {}, to: {} };
-
             var group = d3.select(createSVGElement('g'))
                     .data([self])
                     .attr('uuid', uuid)
@@ -158,16 +156,11 @@ var MohiniComponentFactory = (function() {
         };
 
         Component.prototype.destroy = function() {
-            each(this.connectors.from, function(c) {
-                c.destroy();
-            });
-            each(this.connectors.to, function(c) {
-                c.destroy();
-            });
             each(this.el, function(ele) {
-                ele.destroy();
+                ele.remove();
             });
-            delete factory.components[self.uuid];
+            delete factory.components[this.uuid];
+            this.trigger(Events.DESTROY);
         };
 
         Component.prototype.moveTo = function(x, y) {
@@ -177,8 +170,7 @@ var MohiniComponentFactory = (function() {
             this.y = y;
             this.el.group.attr('transform', 'translate(' + x + ', ' + y + ')');
             this._dirty = true;
-            each(this.connectors.from, function(c) { c.refresh(); });
-            each(this.connectors.to, function(c) { c.refresh(); });
+            this.trigger(Events.MOVE);
         };
 
         Component.prototype.render = function() {
@@ -207,8 +199,8 @@ var MohiniComponentFactory = (function() {
             return factory.components[uuid];
         }
 
+        Component.Events = Events;
         extend(Component, new PubSub);
-
         return Component;
     }
 

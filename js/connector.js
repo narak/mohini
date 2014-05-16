@@ -83,39 +83,57 @@ var MohiniConnectorFactory = (function() {
                 Connector.trigger('click', self, d3.event);
             });
 
+            // Force bind context.
+            self.from = self.updateCoords.bind(self, 'from', 'source');
+            self.to = self.updateCoords.bind(self, 'to', 'target');
+            self.destroy = self.destroy.bind(self);
+
             return self;
         }
-
-        Connector.prototype.from = function(opts) {
-            return this.updateCoords.call(this, 'from', 'source', opts);
-        };
-
-        Connector.prototype.to = function(opts) {
-            return this.updateCoords.call(this, 'to', 'target', opts);
-        };
 
         Connector.prototype.updateCoords = function(at, diagProp, opts) {
             opts = opts || {};
 
-            var coords,
-                thisProp = '_' + at;
+            var coords, component,
+                fromTo;
 
-            this[thisProp] = this[thisProp] || {};
+            if (!this['_' + at]) {
+                this['_' + at] = {};
+            }
 
-            if (opts.component) {
-                this[thisProp].component = opts.component;
-                coords = this[thisProp].coords = opts.component.getCoords();
-                opts.component.connectors[at][this.uuid] = this;
+            fromTo = this['_' + at];
+
+            if (opts.component || opts.uuid) {
+                // Clear previous comp events.
+                if (fromTo.uuid) {
+                    component = mohini.Component.get(fromTo.uuid);
+
+                    component.off(mohini.Component.Events.DESTROY + '.' + this.uuid);
+                    component.off(mohini.Component.Events.MOVE + '.' + this.uuid);
+                }
+
+                // New component.
+                component = opts.component ||  mohini.Component.get(opts.uuid);
+                fromTo.uuid = component.uuid;
+
+                component.on(mohini.Component.Events.DESTROY + '.' + this.uuid,
+                    this.destroy);
+                component.on(mohini.Component.Events.MOVE + '.' + this.uuid,
+                    compose.call(this, this[at], this.render));
+
+                coords = component.getCoords();
+
+                delete fromTo.coords;
 
             } else if (opts.coords) {
-                coords = this[thisProp].coords = opts.coords;
-                delete this[thisProp].component;
+                coords = fromTo.coords = opts.coords;
+                delete fromTo.uuid;
 
-            } else if (opts.update && this[thisProp].coords) {
-                if (this[thisProp].component) {
-                    coords = this[thisProp].coords = this[thisProp].component.getCoords();
-                } else {
-                    coords = this[thisProp].coords;
+            } else /*if (opts.update) Assuming its update if there is no param */ {
+                if (fromTo.uuid) {
+                    coords = mohini.Component.get(fromTo.uuid).getCoords();
+                } else if (fromTo.coords) {
+                    coords = fromTo.coords;
                 }
             }
 
@@ -146,12 +164,12 @@ var MohiniConnectorFactory = (function() {
         Connector.prototype.calcEdgeCoords = function() {
 
             if (this._from && this._to
-                && this._from.component && this._to.component
+                && this._from.uuid && this._to.uuid
                 && mohini._drawConnector) {
 
                 // Calc slope
-                var comp1 = this._from.coords,
-                    comp2 = this._to.coords,
+                var comp1 = mohini.Component.get(this._from.uuid).getCoords(),
+                    comp2 = mohini.Component.get(this._to.uuid).getCoords(),
                     dx = comp1[0] - comp2[0],
                     dy = comp1[1] - comp2[1],
                     slope = dy / dx,
@@ -263,15 +281,11 @@ var MohiniConnectorFactory = (function() {
             if (!mohini._drawConnector) return;
 
             this.calcEdgeCoords();
-
-            if (!this._rendered) {
-                this.el.attr('opacity', .5);
-            }
-
-            factory.container.node().appendChild(this.el.node());
             this.el.attr('d', this._diagonal);
 
             if (!this._rendered) {
+                this.el.attr('opacity', .5);
+                factory.container.node().appendChild(this.el.node());
                 this.el.transition()
                     .delay(200)
                     .duration(1000)
@@ -283,19 +297,9 @@ var MohiniConnectorFactory = (function() {
         };
 
         Connector.prototype.destroy = function() {
-            this.el.destroy();
-            if (this._from) {
-                if (this._from.component) {
-                    delete this._from.component.connectors.from[this.uuid];
-                }
-                delete this._from;
-            }
-            if (this._to) {
-                if (this._to.component) {
-                    delete this._to.component.connectors.to[this.uuid];
-                }
-                delete this._to;
-            }
+            this.el.remove();
+            delete this._from;
+            delete this._to;
             delete factory.connectors[self.uuid];
         };
 

@@ -151,7 +151,14 @@ for (var j = compCount - 1; j >= 0; j--) {
 }
 
 function destroy() {
-    comps[compCount - 1].destroy();
+    comps.pop().destroy();
+}
+
+function ad() {
+    var inter = window.setInterval(function() {
+        destroy();
+        if (!comps.length) window.clearInterval(inter);
+    }, 500);
 }
 
 var started = false,
