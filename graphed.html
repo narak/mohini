@@ -29,18 +29,23 @@ line:hover {
     stroke-width: 5px;
 }
 
-.dragging .component,
-.dragging .component:hover {
+.dragging.component rect,
+.dragging.component:hover rect {
     stroke: #000;
+    fill: #eee;
+    -webkit-box-shadow: 0 0 8px #888;
+    -moz-box-shadow: 0 0 8px #888;
+    box-shadow: 0 0 8px #888;
+    filter: url(#dropshadow);
 }
 
-.component {
+.component rect {
     fill: #fff;
     stroke: #ccc;
     pointer-events: all;
 }
 
-.component:hover {
+.component:hover rect {
     stroke: #567890;
     fill: #eee;
 }
@@ -157,9 +162,9 @@ var clickHandle, started = false,
         }
         clickHandle = mohini.Component.on('click', function(component) {
             if (!started) {
-                mohini.trigger(Mohini.Events.CONNECT, component);
+                mohini.connect(component);
             } else {
-                mohini.trigger(Mohini.Events.CONNECT, component);
+                mohini.connect(component);
                 mohini.Component.off(clickHandle);
                 clickHandle = null;
             }
@@ -173,16 +178,17 @@ var addComponent = function() {
                 h: 50,
                 x: -1000,
                 y: -1000,
-                //l: prompt('Name:')
+                //l: prompt('Name:'),
+                render: true
             }),
             handle = c.on('click', function(evt) {
                 c.off(handle);
                 d3.select(document.body).on('mousemove.addComponent', null);
-                c.moveTo.apply(c, mohini.transform(evt.x - 20, evt.y - 20));
+                c.moveTo.apply(c, mohini.transform(evt.x - 25, evt.y - 30));
                 handle = null;
             });
         d3.select(document.body).on('mousemove.addComponent', function() {
-            c.moveTo.apply(c, mohini.transform(d3.event.x - 20, d3.event.y - 20));
+            c.moveTo.apply(c, mohini.transform(d3.event.x - 25, d3.event.y - 30));
         });
     };
 

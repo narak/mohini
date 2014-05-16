@@ -7,31 +7,31 @@ var MohiniConnectorFactory = (function() {
     var defsContainer = body.append('svg')
         .attr('width', 0)
         .attr('height', 0)
-        .append("defs");
+        .append('defs');
 
-    defsContainer.append("marker")
-        .attr("id", "markerEnd")
-        .attr("refX", 2)
-        .attr("refY", 1.5)
-        .attr("markerWidth", 3)
-        .attr("markerHeight", 3)
-        .attr("orient", "auto")
-        .append("path")
-            .attr("d", "M 0,0 V 3 L3,1.5 Z");
+    defsContainer.append('marker')
+        .attr('id', 'markerEnd')
+        .attr('refX', 2)
+        .attr('refY', 1.5)
+        .attr('markerWidth', 3)
+        .attr('markerHeight', 3)
+        .attr('orient', 'auto')
+        .append('path')
+            .attr('d', 'M 0,0 V 3 L3,1.5 Z');
 
-    defsContainer.append("marker")
-        .attr("id", "markerStart")
-        .attr("refX", 2.5)
-        .attr("refY", 1.5)
-        .attr("markerWidth", 7)
-        .attr("markerHeight", 7)
-        .attr("orient", "auto")
+    defsContainer.append('marker')
+        .attr('id', 'markerStart')
+        .attr('refX', 2.5)
+        .attr('refY', 1.5)
+        .attr('markerWidth', 7)
+        .attr('markerHeight', 7)
+        .attr('orient', 'auto')
         .style({
             'stroke': 'none',
             'fill': '#000000'
         })
-        .append("circle")
-            .attr("cx", 1.5)
+        .append('circle')
+            .attr('cx', 1.5)
             .attr('cy', 1.5)
             .attr('r', 1.5);
 
@@ -78,6 +78,10 @@ var MohiniConnectorFactory = (function() {
                 .attr('uuid', uuid)
                 .attr("marker-start", "url(#markerStart)")
                 .attr("marker-end", "url(#markerEnd)");
+
+            self.el.on('click.pubsub', function() {
+                Connector.trigger('click', self, d3.event);
+            });
 
             return self;
         }
@@ -259,7 +263,7 @@ var MohiniConnectorFactory = (function() {
             this.centroidToEdge();
 
             if (!this._rendered) {
-                this.el.attr('opacity', 0);
+                this.el.attr('opacity', .5);
             }
 
             factory.container.node().appendChild(this.el.node());
@@ -268,7 +272,7 @@ var MohiniConnectorFactory = (function() {
             if (!this._rendered) {
                 this.el.transition()
                     .delay(200)
-                    .duration(500)
+                    .duration(1000)
                     .attr('opacity', 1);
                 this._rendered = true;
             }
@@ -334,6 +338,8 @@ var MohiniConnectorFactory = (function() {
             }
             return connector;
         }
+
+        extend(Connector, new PubSub);
 
         return Connector;
     }

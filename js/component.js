@@ -3,6 +3,32 @@
  */
 var MohiniComponentFactory = (function() {
 
+    // Filters.
+    var defsContainer = d3.select(document.body).append('svg')
+        .attr('width', 0)
+        .attr('height', 0)
+        .append('defs');
+
+    var filter = defsContainer.append('filter')
+        .attr('id', 'dropshadow')
+        .attr('height', '150%');
+    filter.append('feGaussianBlur')
+            .attr('in', 'SourceAlpha')
+            .attr('stdDeviation', 3); //stdDeviation is how much to blur
+    filter.append('feOffset') //how much to offset
+            .attr('dx', 2)
+            .attr('dy', 2)
+            .attr('result', 'offsetblur');
+    filter.append('feComponentTransfer')
+        .append('feFuncA')
+            .attr('type', 'linear')
+            .attr('slope', 0.2);
+
+    var feMerge = filter.append('feMerge');
+    feMerge.append('feMergeNode'); //this contains the offset blurred image
+    feMerge.append('feMergeNode')
+        .attr('in', 'SourceGraphic');
+
     function MohiniComponentFactory(mohini) {
         if (!(this instanceof MohiniComponentFactory)) {
             throw new Error('Wrong usage of factory. Use `new MohiniComponentFactory()`.');
@@ -36,9 +62,6 @@ var MohiniComponentFactory = (function() {
                 render = !!data.render;
             delete data.render;
 
-            // Give components local event capability.
-            extend(self, new PubSub);
-
             if (!data.x || !data.y) {
                 var mid = mohini.getMidCoords();
                 data.x = data.x || mid[0];
@@ -57,6 +80,8 @@ var MohiniComponentFactory = (function() {
                 cr: 5,
                 name: uuid
             }, data);
+            // Extend pubsub.
+            extend(self, new PubSub);
 
             self._dirty = true;
 
@@ -65,20 +90,12 @@ var MohiniComponentFactory = (function() {
             var group = d3.select(createSVGElement('g'))
                     .data([self])
                     .attr('uuid', uuid)
+                    .attr('class', 'component')
                     .attr('transform', function(d) { return 'translate(' + d.x + ', ' + d.y + ')'; })
                     .call(factory._drag);
 
-            group.on('click.moveToFront', function() {
-                group.moveToFront();
-            });
-            group.on('click.pubsub', function() {
-                self.trigger('click', d3.event);
-                Component.trigger('click', self, d3.event);
-            });
-
             self.el = {
                 box: group.append('rect')
-                    .attr('class', 'component')
                     .attr('width', function(d) { return d.w; })
                     .attr('height', function(d) { return d.h; })
                     .attr('rx', self.r)
@@ -162,13 +179,23 @@ var MohiniComponentFactory = (function() {
         Component.prototype.render = function() {
             if (this._rendered) return this;
 
-            this.el.group.attr('opacity', 0);
-            factory.container.node().appendChild(this.el.group.node());
+            var self = this;
 
-            this.el.group.transition()
+            self.el.group.on('click.moveToFront', function() {
+                self.el.group.moveToFront();
+            });
+            self.el.group.on('click.pubsub', function() {
+                self.trigger('click', d3.event);
+                Component.trigger('click', self, d3.event);
+            });
+
+            self.el.group.attr('opacity', 0);
+            factory.container.node().appendChild(self.el.group.node());
+
+            self.el.group.transition()
                 .duration(500)
                 .attr('opacity', 1);
-            this._rendered = true;
+            self._rendered = true;
         };
 
         Component.get = function(uuid) {

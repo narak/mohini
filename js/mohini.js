@@ -12,12 +12,7 @@
 // events so other can subscribe.
 
 var Mohini = (function() {
-    var Mohini,
-        Events = {
-            ADD_COMPONENT: 'component:add',
-            ADD_CONNECTOR: 'connector:add',
-            CONNECT: 'connector:connect'
-        };
+    var Mohini;
 
     Mohini = function Mohini(opts) {
         if (!(this instanceof Mohini)) {
@@ -64,12 +59,6 @@ var Mohini = (function() {
         self.Connector = new MohiniConnectorFactory(self);
         self.connect = self.Connector.connect;
         self.Component = new MohiniComponentFactory(self);
-
-        // Event subscriptions;
-        self.on(Events.CONNECT, self.connect);
-        self.on(Events.ADD_COMPONENT, function(opts) {
-            new self.Component(opts);
-        });
 
         return self;
     }
@@ -133,7 +122,6 @@ var Mohini = (function() {
         return this.transform.apply(this, [w/2, h/2]);
     };
 
-    Mohini.Events = Events;
-    // extend(Mohini, new PubSub);
+    extend(Mohini, new PubSub);
     return Mohini;
 })();
