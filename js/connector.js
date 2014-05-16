@@ -66,6 +66,9 @@ var MohiniConnectorFactory = (function() {
             var uuid = generateUUID('conn'),
                 self = this;
 
+            // Extend pubsub.
+            extend(self, new PubSub);
+
             factory.connectors[uuid] = self;
 
             self.uuid = uuid;
@@ -78,10 +81,6 @@ var MohiniConnectorFactory = (function() {
                 .attr('uuid', uuid)
                 .attr("marker-start", "url(#markerStart)")
                 .attr("marker-end", "url(#markerEnd)");
-
-            self.el.on('click.pubsub', function() {
-                Connector.trigger('click', self, d3.event);
-            });
 
             // Force bind context.
             self.from = self.updateCoords.bind(self, 'from', 'source');
@@ -280,20 +279,26 @@ var MohiniConnectorFactory = (function() {
         Connector.prototype.render = function() {
             if (!mohini._drawConnector) return;
 
-            this.calcEdgeCoords();
-            this.el.attr('d', this._diagonal);
+            var self = this;
+            self.calcEdgeCoords();
+            self.el.attr('d', self._diagonal);
 
-            if (!this._rendered) {
-                this.el.attr('opacity', .5);
-                factory.container.node().appendChild(this.el.node());
-                this.el.transition()
+            if (!self._rendered) {
+                self.el.on('click.pubsub', function() {
+                    self.trigger('click', d3.event);
+                    Connector.trigger('click', self, d3.event);
+                });
+
+                self.el.attr('opacity', .5);
+                factory.container.node().appendChild(self.el.node());
+                self.el.transition()
                     .delay(200)
                     .duration(1000)
                     .attr('opacity', 1);
-                this._rendered = true;
+                self._rendered = true;
             }
 
-            return this;
+            return self;
         };
 
         Connector.prototype.destroy = function() {

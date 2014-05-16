@@ -15,6 +15,17 @@
 // - Events[connect, destroy, move, add, etc.]: These events should be used to
 //   communicate between components and connectors, and avoid talking directly.
 
+
+/**
+ * Creates an instance of Mohini.
+ * @param {object} opts Options object used to configure the mohini instance.
+ *                      Example: {
+ *                          container: {string|Element|D3 Element}
+ *                          width:     {string|number}
+ *                          height:    {string|number}
+ *                      }
+ * @return {object} Instance of mohini.
+ */
 var Mohini = (function() {
     var Mohini;
 
@@ -42,6 +53,7 @@ var Mohini = (function() {
             throw new Error('Cannot create instance of Mohini without a container.');
         }
 
+        // Sort out mainContainer, svg and container.
         if (self.mainContainer.node() instanceof SVGElement) {
             var div = document.createElement('div');
             self.mainContainer.node().parentNode.insertBefore(div, self.mainContainer.node());
@@ -51,8 +63,9 @@ var Mohini = (function() {
         } else {
             self.svg = self.mainContainer.append('svg');
         }
-
         self.container = self.svg.append('g');
+
+        // Plugin d3js zoom behaviour.
         self.svg.call(self._zoom);
 
         opts.width && self.svg.attr('width', opts.width);
@@ -60,8 +73,10 @@ var Mohini = (function() {
 
         // Add factories.
         self.Connector = new MohiniConnectorFactory(self);
-        self.connect = self.Connector.connect;
         self.Component = new MohiniComponentFactory(self);
+
+        // Alias.
+        self.connect = self.Connector.connect;
 
         return self;
     }
@@ -93,6 +108,10 @@ var Mohini = (function() {
             return null;
         }
 
+        // x             : Take the coord from window coord space.
+        // - translate[0]: Move coord by current translate from SVG coord space.
+        //  - svgDim.left: Move coord by current SVG position in window coord space.
+        //        / scale: Scale the coord by the SVG coord space.
         x = ((x - translate[0] - svgDim.left) / scale);
         y = ((y - translate[1] - svgDim.top) / scale);
 

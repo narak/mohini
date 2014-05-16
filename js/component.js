@@ -200,6 +200,7 @@ var MohiniComponentFactory = (function() {
         }
 
         Component.Events = Events;
+        // Extend pubsub.
         extend(Component, new PubSub);
         return Component;
     }
