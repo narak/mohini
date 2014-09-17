@@ -73,15 +73,21 @@ var MohiniComponentFactory = (function() {
                 data.y = data.y || mid[1];
             }
 
+            if (data.symbol) {
+                data.symbol.padding = data.symbol.padding || 10;
+                data.symbol.x = data.w/2 - data.symbol.w/2;
+                data.symbol.y = data.symbol.padding;
+            }
+
             // Extend self with defaults and then the input data.
             extend(self, {
                 uuid: uuid,
                 r: 5,
                 fs: 10,
-                fdx: data.w/2,
-                fdy: 25,
-                cx: 25,
-                cy: 35,
+                font_dx: data.w/2,
+                font_dy: -5,
+                circle_x: 25,
+                circle_y: 35,
                 cr: 5,
                 name: uuid
             }, data);
@@ -110,14 +116,24 @@ var MohiniComponentFactory = (function() {
                 label: group.append('text')
                     .attr('width', function(d) { return d.w; })
                     .attr('height', function(d) { return d.h; })
-                    .attr('dx',  function(d) { return d.fdx; })
-                    .attr('dy',  function(d) { return d.fdy; })
+                    .attr('dx',  function(d) { return d.font_dx; })
+                    .attr('dy',  function(d) { return d.font_dy; })
                     .attr('text-anchor', 'middle')
                     .style('font', self.fs + 'px ' + (self.ff || 'sans-serif'))
                     .text(function(d) { return d.name || self.uuid; }),
 
                 group: group
             };
+
+            if (data.symbol && data.symbol.url) {
+                self.el.symbol = group.append('image')
+                    .attr('y', function(d) { return d.symbol.y; })
+                    .attr('x', function(d) { return d.symbol.x; })
+                    .attr('width', data.symbol.w || data.w)
+                    .attr('height', data.symbol.h || data.h)
+                    .attr('xlink:href', data.symbol.url);
+            }
+
             factory.components[uuid] = self;
 
             if (render) {
