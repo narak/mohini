@@ -53,11 +53,11 @@ line:hover {
 .connector {
     fill: none;
     stroke: rgb(95, 128, 170);
-    stroke-width: 4px;
+    stroke-width: 2px;
     stroke-dasharray: 6 2;
 }
 .connector:hover {
-    stroke-width: 5px;
+    stroke-width: 2px;
     stroke-dasharray: none;
 }
 
@@ -107,8 +107,9 @@ button:active {
 </style>
 <body>
 <div id="toolbar">
-    <button type="button" id="add-component" title="Shift + C">[ ]</button>
-    <button type="button" id="add-connector" title="Shift + X">--</button>
+    <button type="button" id="add-component" title="Add Component: shift + c">[ ]</button>
+    <button type="button" id="add-connector" title="Add Connector: shift + x">--</button>
+    <button type="button" id="clear-all" title="Clear All">X</button>
 </div>
 
 <div id="svg-container"></div>
@@ -158,7 +159,7 @@ function ad() {
     var inter = window.setInterval(function() {
         destroy();
         if (!comps.length) window.clearInterval(inter);
-    }, 500);
+    }, 0);
 }
 
 var started = false,
@@ -182,7 +183,7 @@ var addComponent = function() {
                 h: 50,
                 x: -1000,
                 y: -1000,
-                //name: prompt('Name:'),
+                name: prompt('Name:'),
                 render: true
             });
 

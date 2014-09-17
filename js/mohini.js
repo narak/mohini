@@ -84,7 +84,7 @@ var Mohini = (function() {
     /**
      * Transforms and scales the coordinates from the window coordinate space
      * to the svg coordinate space.
-     * @param  {object|number} xy  Object containinig x and y attributes to be
+     * @param  {object|number} xy  Object containing x and y attributes to be
      *                             transformed or x coordinate as number.
      * @param  {number} y   y coordinate as number.
      * @param  {object} obj Object to which the transformed x and y values will

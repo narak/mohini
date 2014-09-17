@@ -50,7 +50,7 @@ var MohiniConnectorFactory = (function() {
         }
     }
 
-    function MohiniConnectorFactory(mohini) {
+    var MohiniConnectorFactory = function MohiniConnectorFactory(mohini) {
         if (!(this instanceof MohiniConnectorFactory)) {
             throw new Error('Wrong usage of factory. Use `new MohiniConnectorFactory()`.');
         }
@@ -90,7 +90,7 @@ var MohiniConnectorFactory = (function() {
             return self;
         }
 
-        Connector.prototype.updateCoords = function(at, diagProp, opts) {
+        Connector.prototype.updateCoords = function ConnUpdateCoords(at, diagProp, opts) {
             opts = opts || {};
 
             var coords, component,
@@ -112,7 +112,7 @@ var MohiniConnectorFactory = (function() {
                 }
 
                 // New component.
-                component = opts.component ||  mohini.Component.get(opts.uuid);
+                component = opts.component || mohini.Component.get(opts.uuid);
                 fromTo.uuid = component.uuid;
 
                 component.on(mohini.Component.Events.DESTROY + '.' + this.uuid,
@@ -152,15 +152,15 @@ var MohiniConnectorFactory = (function() {
             return this;
         };
 
-        Connector.prototype.refresh = function() {
+        Connector.prototype.refresh = function ConnRefresh() {
             this.from({ update: true })
                 .to({ update: true })
                 .render();
         };
 
         mohini._drawConnector = true;
-        mohini._edgeOffset = 4;
-        Connector.prototype.calcEdgeCoords = function() {
+        mohini._edgeOffset = 2;
+        Connector.prototype.calcEdgeCoords = function ConnCalcEdgeCoords() {
 
             if (this._from && this._to
                 && this._from.uuid && this._to.uuid
@@ -276,7 +276,7 @@ var MohiniConnectorFactory = (function() {
             }
         };
 
-        Connector.prototype.render = function() {
+        Connector.prototype.render = function ConnRender() {
             if (!mohini._drawConnector) return;
 
             var self = this;
@@ -301,14 +301,14 @@ var MohiniConnectorFactory = (function() {
             return self;
         };
 
-        Connector.prototype.destroy = function() {
+        Connector.prototype.destroy = function ConnDestroy() {
             this.el.remove();
             delete this._from;
             delete this._to;
             delete factory.connectors[self.uuid];
         };
 
-        Connector.connect = function(component, dest) {
+        Connector.connect = function ConnConnect(component, dest) {
             if (!component) return;
 
             var connector;

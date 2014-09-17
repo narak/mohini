@@ -34,7 +34,7 @@ var MohiniComponentFactory = (function() {
     feMerge.append('feMergeNode')
         .attr('in', 'SourceGraphic');
 
-    function MohiniComponentFactory(mohini) {
+    var MohiniComponentFactory = function MohiniComponentFactory(mohini) {
         if (!(this instanceof MohiniComponentFactory)) {
             throw new Error('Wrong usage of factory. Use `new MohiniComponentFactory()`.');
         }
@@ -127,7 +127,7 @@ var MohiniComponentFactory = (function() {
             return self;
         }
 
-        Component.prototype.getCoords = function() {
+        Component.prototype.getCoords = function CompGetCoords() {
             if (this._dirty) {
                 var ep = this.el.box.node(),
                     dim = ep.getBoundingClientRect();
@@ -155,7 +155,7 @@ var MohiniComponentFactory = (function() {
             return this._xy;
         };
 
-        Component.prototype.destroy = function() {
+        Component.prototype.destroy = function CompDestroy() {
             each(this.el, function(ele) {
                 ele.remove();
             });
@@ -163,7 +163,7 @@ var MohiniComponentFactory = (function() {
             this.trigger(Events.DESTROY);
         };
 
-        Component.prototype.moveTo = function(x, y) {
+        Component.prototype.moveTo = function CompMoveTo(x, y) {
             // If you transform the group, all the group children take their
             // positions in relation to the group's position.
             this.x = x;
@@ -173,7 +173,7 @@ var MohiniComponentFactory = (function() {
             this.trigger(Events.MOVE);
         };
 
-        Component.prototype.render = function() {
+        Component.prototype.render = function CompRender() {
             if (this._rendered) return this;
 
             var self = this;
@@ -195,7 +195,7 @@ var MohiniComponentFactory = (function() {
             self._rendered = true;
         };
 
-        Component.get = function(uuid) {
+        Component.get = function CompGet(uuid) {
             return factory.components[uuid];
         }
 
