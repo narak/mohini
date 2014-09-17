@@ -308,6 +308,19 @@ var MohiniConnectorFactory = (function() {
             delete factory.connectors[self.uuid];
         };
 
+        Connector.prototype.isActive = function ConnIsActive(val) {
+            if (val !== undefined) {
+                this._isActive = !!val;
+            }
+            return !!this._isActive;
+        };
+
+        Connector.prototype.toggleActive = function ConnToggleActive() {
+            var ia = !this.isActive();
+            this.el.classed('active', ia);
+            this.isActive(ia);
+        };
+
         Connector.connect = function ConnConnect(component, dest) {
             if (!component) return;
 

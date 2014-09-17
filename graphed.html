@@ -30,7 +30,9 @@ line:hover {
 }
 
 .dragging.component rect,
-.dragging.component:hover rect {
+.dragging.component:hover rect,
+.active.component rect,
+.active.component:hover rect {
     stroke: #000;
     fill: #eee;
     -webkit-box-shadow: 0 0 8px #888;
@@ -52,13 +54,22 @@ line:hover {
 
 .connector {
     fill: none;
-    stroke: rgb(95, 128, 170);
+    stroke: rgb(167, 189, 218);
     stroke-width: 2px;
-    stroke-dasharray: 6 2;
+    stroke-dasharray: none;
 }
 .connector:hover {
     stroke-width: 2px;
+    stroke-dasharray: 6 2;
+}
+.connector.active:hover,
+.connector.active {
+    stroke: rgb(79, 99, 124);
+    stroke-width: 3px;
     stroke-dasharray: none;
+}
+.connector.active:hover {
+    stroke: rgb(145, 159, 177);
 }
 
 #svg-container,
@@ -121,8 +132,8 @@ button:active {
 <script src='js/connector.js'></script>
 <script>
 var comps = [], conns = [],
-    compCount = 21,
-    perRow = 7,
+    compCount = 9,
+    perRow = 3,
     distance = 120,
     conn;
 
@@ -133,34 +144,58 @@ var mohini = new Mohini({
 });
 
 
-for (var i = 0; i < compCount; i++) {
-    comps.push(new mohini.Component({
-        w: 50,
-        h: 50,
-        x: distance + ((i * distance) - (Math.floor(i / perRow) * distance * perRow)),
-        y: distance + (Math.floor(i / perRow) * distance),
-        name: 'Comp ' + i,
-        render: true
-    }));
-}
+// for (var i = 0; i < compCount; i++) {
+//     comps.push(new mohini.Component({
+//         w: 50,
+//         h: 50,
+//         x: distance + ((i * distance) - (Math.floor(i / perRow) * distance * perRow)),
+//         y: distance + (Math.floor(i / perRow) * distance),
+//         name: 'Comp ' + i,
+//         render: true
+//     }));
+// }
 
-for (var j = compCount - 1; j >= 0; j--) {
-    conn = mohini.connect(comps[10], comps[j]);
-    if (!conn) continue;
-    conn.render();
-    conns.push(conn);
-}
+// for (var j = compCount - 1; j >= 0; j--) {
+//     conn = mohini.connect(comps[8], comps[j]);
+//     if (!conn) continue;
+//     conn.render();
+//     conns.push(conn);
+// }
 
-function destroy() {
-    comps.pop().destroy();
-}
+// function destroy() {
+//     comps.pop().destroy();
+// }
 
-function ad() {
-    var inter = window.setInterval(function() {
-        destroy();
-        if (!comps.length) window.clearInterval(inter);
-    }, 0);
-}
+// function ad() {
+//     var inter = window.setInterval(function() {
+//         destroy();
+//         if (!comps.length) window.clearInterval(inter);
+//     }, 0);
+// }
+
+var _activeComp;
+mohini.Component.on('click.activate', function(comp) {
+    if (_activeComp !== comp) {
+        _activeComp && _activeComp.toggleActive();
+        comp.toggleActive();
+        _activeComp = comp;
+    } else {
+        comp.toggleActive();
+        _activeComp = null;
+    }
+});
+
+var _activeConn;
+mohini.Connector.on('click.activate', function(comp) {
+    if (_activeConn !== comp) {
+        _activeConn && _activeConn.toggleActive();
+        comp.toggleActive();
+        _activeConn = comp;
+    } else {
+        comp.toggleActive();
+        _activeConn = null;
+    }
+});
 
 var started = false,
     addConnector = function() {
@@ -183,7 +218,7 @@ var addComponent = function() {
                 h: 50,
                 x: -1000,
                 y: -1000,
-                name: prompt('Name:'),
+                //name: prompt('Name:'),
                 render: true
             });
 

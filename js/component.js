@@ -195,6 +195,19 @@ var MohiniComponentFactory = (function() {
             self._rendered = true;
         };
 
+        Component.prototype.isActive = function CompIsActive(val) {
+            if (val !== undefined) {
+                this._isActive = !!val;
+            }
+            return !!this._isActive;
+        };
+
+        Component.prototype.toggleActive = function CompToggleActive() {
+            var ia = !this.isActive();
+            this.el.group.classed('active', ia);
+            this.isActive(ia);
+        };
+
         Component.get = function CompGet(uuid) {
             return factory.components[uuid];
         }
