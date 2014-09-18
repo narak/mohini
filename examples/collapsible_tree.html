@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.node {
+  cursor: pointer;
+}
+
+.node circle {
+  fill: #fff;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  font: 10px sans-serif;
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1.5px;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+var flare = {
+ "name": "flare",
+ "children": [
+  {
+   "name": "animate",
+   "children": [
+    {"name": "Easing"},
+    {"name": "FunctionSequence"},
+    {
+     "name": "interpolate",
+     "children": [
+      {"name": "ArrayInterpolator"},
+      {"name": "ColorInterpolator"},
+      {"name": "DateInterpolator"},
+      {"name": "Interpolator"},
+      {"name": "MatrixInterpolator"},
+      {"name": "NumberInterpolator"},
+      {"name": "ObjectInterpolator"},
+      {"name": "PointInterpolator"},
+      {"name": "RectangleInterpolator"}
+     ]
+    },
+    {"name": "ISchedulable"},
+    {"name": "Parallel"},
+    {"name": "Pause"},
+    {"name": "Scheduler"},
+    {"name": "Sequence"},
+    {"name": "Transition"},
+    {"name": "Transitioner"},
+    {"name": "TransitionEvent"},
+    {"name": "Tween"}
+   ]
+  },
+  {
+   "name": "data",
+   "children": [
+    {
+     "name": "converters",
+     "children": [
+      {"name": "Converters"},
+      {"name": "DelimitedTextConverter"},
+      {"name": "GraphMLConverter"},
+      {"name": "IDataConverter"},
+      {"name": "JSONConverter"}
+     ]
+    },
+    {"name": "DataField"},
+    {"name": "DataSchema"},
+    {"name": "DataSet"},
+    {"name": "DataSource"},
+    {"name": "DataTable"},
+    {"name": "DataUtil"}
+   ]
+  }
+ ]
+};
+
+var margin = {top: 20, right: 120, bottom: 20, left: 120},
+    width = 960 - margin.right - margin.left,
+    height = 800 - margin.top - margin.bottom;
+
+var i = 0,
+    duration = 750,
+    root;
+
+var tree = d3.layout.tree()
+    .size([height, width]);
+
+var diagonal = d3.svg.diagonal()
+    .projection(function(d) { return [d.y, d.x]; });
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.right + margin.left)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.select(self.frameElement).style("height", "800px");
+
+function update(source) {
+
+  // Compute the new tree layout.
+  var nodes = tree.nodes(root).reverse(),
+      links = tree.links(nodes);
+
+  // Normalize for fixed-depth.
+  nodes.forEach(function(d) { d.y = d.depth * 180; });
+
+  // Update the nodes…
+  var node = svg.selectAll("g.node")
+      .data(nodes);
+
+  // Enter any new nodes at the parent's previous position.
+  var nodeEnter = node.enter().append("g")
+      .attr("class", "node")
+      .on("click", click);
+
+  nodeEnter.append("circle")
+      .attr("r", 4.5)
+      .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+  nodeEnter.append("text")
+      .attr("x", function(d) { return d.children || d._children ? -10 : 10; })
+      .attr("dy", ".35em")
+      .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+      .text(function(d) { return d.name; })
+      .style("fill-opacity", 1);
+
+  // Transition nodes to their new position.
+  node.attr("transform", function(d) {
+    return "translate(" + d.y + "," + d.x + ")";
+  });
+
+  // Transition exiting nodes to the parent's new position.
+  node.exit().remove();
+
+  // Update the links…
+  var link = svg.selectAll("path.link")
+      .data(links);
+
+  // Enter any new links at the parent's previous position.
+  link.enter().insert("path", "g")
+      .attr("class", "link");
+
+  // Transition links to their new position.
+  link.attr("d", diagonal);
+
+  // Transition exiting nodes to the parent's new position.
+  link.exit().remove();
+}
+
+// Toggle children on click.
+function click(d) {
+  if (d.children) {
+    d._children = d.children;
+    d.children = null;
+  } else {
+    d.children = d._children;
+    d._children = null;
+  }
+  update(d);
+}
+
+
+var root = flare;
+root.x0 = height / 2;
+root.y0 = 0;
+
+function collapse(d) {
+  if (d.children) {
+    d._children = d.children;
+    d._children.forEach(collapse);
+    d.children = null;
+  }
+}
+
+root.children.forEach(collapse);
+update(root);
+
+</script>

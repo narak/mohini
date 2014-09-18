@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+.node {
+    cursor: pointer;
+}
+
+.node circle {
+    fill: #fff;
+    stroke: steelblue;
+    stroke-width: 1.5px;
+}
+
+.node text {
+    font: 10px sans-serif;
+}
+
+.link {
+    fill: none;
+    stroke: #ccc;
+    stroke-width: 1.5px;
+}
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+var flare = {
+    "name": "flare",
+    "children": [
+        {
+            "name": "animate",
+            "children": [
+                {"name": "Easing"},
+                {"name": "FunctionSequence"},
+                {
+                    "name": "interpolate",
+                    "children": [
+                        {"name": "ArrayInterpolator"},
+                        {"name": "ColorInterpolator"},
+                        {"name": "DateInterpolator"},
+                        {"name": "Interpolator"},
+                        {"name": "MatrixInterpolator"},
+                        {"name": "NumberInterpolator"},
+                        {"name": "ObjectInterpolator"},
+                        {"name": "PointInterpolator"},
+                        {"name": "RectangleInterpolator"}
+                    ]
+                },
+                {"name": "ISchedulable"},
+                {"name": "Parallel"},
+                {"name": "Pause"},
+                {"name": "Transition"}
+            ]
+        },
+        {
+            "name": "data",
+            "children": [
+                {
+                    "name": "converters",
+                    "children": [
+                        {"name": "Converters"},
+                        {"name": "DelimitedTextConverter"},
+                        {"name": "GraphMLConverter"},
+                        {"name": "IDataConverter"},
+                        {"name": "JSONConverter"}
+                    ]
+                },
+                {"name": "DataField"},
+                {"name": "DataSchema"},
+                {"name": "DataSet"},
+                {"name": "DataSource"},
+                {"name": "DataTable"},
+                {"name": "DataUtil"}
+            ]
+        }
+    ]
+};
+
+var diameter = 900,
+   i = 0;
+
+var tree = d3.layout.tree()
+    .size([360, diameter / 2 - 100])
+    .separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
+
+var diagonal = d3.svg.diagonal.radial()
+    .projection(function(d) { return [d.y, d.x / 180 * Math.PI]; });
+
+var zoom = d3.behavior.zoom()
+    .on("zoom", function zoomed() {
+        outterContainer.attr("transform", "translate(" + d3.event.translate[0] + ", " + d3.event.translate[1] + ")scale(" + d3.event.scale + ")");
+    });
+
+var svg = d3.select("body").append("svg")
+        .attr("width", diameter)
+        .attr("height", diameter)
+        .call(zoom);
+
+var outterContainer = svg.append("g");
+
+var container = outterContainer.append("g")
+        .attr("transform", "translate(" + diameter / 2 + "," + diameter / 2 + ")")
+
+function update(flare) {
+    var nodes = tree.nodes(root),
+        links = tree.links(nodes);
+
+    // Update the nodes…
+    var node = container.selectAll("g.node")
+        .data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+    // Enter any new nodes at the parent's previous position.
+    var nodeEnter = node.enter().append("g")
+        .attr("class", "node")
+        .on("click", click);
+
+    nodeEnter.append("circle")
+        .attr("r", 4.5)
+        .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+    nodeEnter.append("text")
+        .attr("dy", ".31em")
+        .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+        .attr("transform", function(d) { return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
+        .text(function(d) { return d.name; });
+
+    node.attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; })
+
+    // Update the links…
+    var link = container.selectAll("path.link")
+        .data(links, function(d) { return d.target.id; });
+
+    // Enter any new links at the parent's previous position.
+    link.enter().insert("path", "g")
+        .attr("class", "link")
+
+    link.attr("d", diagonal);
+
+    // Transition exiting nodes to the parent's new position.
+    node.exit().remove();
+
+    // Transition exiting nodes to the parent's new position.
+    link.exit().remove();
+}
+
+d3.select(self.frameElement).style("height", diameter - 150 + "px");
+
+var root = flare;
+// root.x0 = height / 2;
+// root.y0 = 0;
+//
+// Toggle children on click.
+function click(d) {
+    if (d.children) {
+        d._children = d.children;
+        d.children = null;
+    } else {
+        d.children = d._children;
+        d._children = null;
+    }
+    update(d);
+}
+
+function collapse(d) {
+    if (d.children) {
+        d._children = d.children;
+        d._children.forEach(collapse);
+        d.children = null;
+    }
+}
+
+// root.children.forEach(collapse);
+update(root);
+
+</script>

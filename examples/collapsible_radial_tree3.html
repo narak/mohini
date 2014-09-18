@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+html,
+body {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+.node {
+    cursor: pointer;
+}
+
+.node circle {
+    fill: #fff;
+    stroke: steelblue;
+    stroke-width: 1.5px;
+}
+
+.node text {
+    font: 10px sans-serif;
+}
+
+.link {
+    fill: none;
+    stroke: #ccc;
+    stroke-width: 1.5px;
+}
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+var flare = {
+    "name": "flare",
+    "children": [
+        {
+            "name": "animate",
+            "children": [
+                {"name": "Easing"},
+                {"name": "FunctionSequence"},
+                {
+                    "name": "interpolate",
+                    "children": [
+                        {"name": "ArrayInterpolator"},
+                        {"name": "ColorInterpolator"},
+                        {"name": "DateInterpolator"},
+                        {"name": "Interpolator"},
+                        {"name": "MatrixInterpolator"},
+                        {"name": "NumberInterpolator"},
+                        {"name": "ObjectInterpolator"},
+                        {"name": "PointInterpolator"},
+                        {"name": "RectangleInterpolator"}
+                    ]
+                },
+                {"name": "ISchedulable"},
+                {"name": "Parallel"},
+                {"name": "Pause"},
+                {"name": "Transition"}
+            ]
+        },
+        {
+            "name": "data",
+            "children": [
+                {
+                    "name": "converters",
+                    "children": [
+                        {"name": "Converters"},
+                        {"name": "DelimitedTextConverter"},
+                        {"name": "GraphMLConverter"},
+                        {"name": "IDataConverter"},
+                        {"name": "JSONConverter"}
+                    ]
+                },
+                {"name": "DataField"},
+                {"name": "DataSchema"},
+                {"name": "DataSet"},
+                {"name": "DataSource"},
+                {"name": "DataTable"},
+                {"name": "DataUtil"}
+            ]
+        },
+        {
+            "name": "vis",
+            "children": [
+                {
+                    "name": "axis",
+                    "children": [
+                        {"name": "Axes", "size": 1302},
+                        {"name": "Axis", "size": 24593},
+                        {"name": "AxisGridLine", "size": 652},
+                        {"name": "AxisLabel", "size": 636},
+                        {"name": "CartesianAxes", "size": 6703}
+                    ]
+                },
+                {
+                    "name": "controls",
+                    "children": [
+                        {"name": "AnchorControl", "size": 2138},
+                        {"name": "ClickControl", "size": 3824},
+                        {"name": "Control", "size": 1353},
+                        {"name": "ControlList", "size": 4665},
+                        {"name": "DragControl", "size": 2649},
+                        {"name": "ExpandControl", "size": 2832},
+                        {"name": "HoverControl", "size": 4896},
+                        {"name": "IControl", "size": 763},
+                        {"name": "PanZoomControl", "size": 5222},
+                        {"name": "SelectionControl", "size": 7862},
+                        {"name": "TooltipControl", "size": 8435}
+                    ]
+                },
+                {
+                    "name": "data",
+                    "children": [
+                        {"name": "Data", "size": 20544},
+                        {"name": "DataList", "size": 19788},
+                        {"name": "DataSprite", "size": 10349},
+                        {"name": "EdgeSprite", "size": 3301},
+                        {"name": "NodeSprite", "size": 19382},
+                        {
+                            "name": "render",
+                            "children": [
+                                {"name": "ArrowType", "size": 698},
+                                {"name": "EdgeRenderer", "size": 5569},
+                                {"name": "IRenderer", "size": 353},
+                                {"name": "ShapeRenderer", "size": 2247}
+                            ]
+                        },
+                        {"name": "ScaleBinding", "size": 11275},
+                        {"name": "Tree", "size": 7147},
+                        {"name": "TreeBuilder", "size": 9930}
+                    ]
+                },
+                {
+                    "name": "events",
+                    "children": [
+                        {"name": "DataEvent", "size": 2313},
+                        {"name": "SelectionEvent", "size": 1880},
+                        {"name": "TooltipEvent", "size": 1701},
+                        {"name": "VisualizationEvent", "size": 1117}
+                    ]
+                },
+                {
+                    "name": "legend",
+                    "children": [
+                        {"name": "Legend", "size": 20859},
+                        {"name": "LegendItem", "size": 4614},
+                        {"name": "LegendRange", "size": 10530}
+                    ]
+                },
+                {
+                    "name": "operator",
+                    "children": [
+                        {
+                            "name": "distortion",
+                            "children": [
+                                {"name": "BifocalDistortion", "size": 4461},
+                                {"name": "Distortion", "size": 6314},
+                                {"name": "FisheyeDistortion", "size": 3444}
+                            ]
+                        },
+                        {
+                            "name": "encoder",
+                            "children": [
+                                {"name": "ColorEncoder", "size": 3179},
+                                {"name": "Encoder", "size": 4060},
+                                {"name": "PropertyEncoder", "size": 4138},
+                                {"name": "ShapeEncoder", "size": 1690},
+                                {"name": "SizeEncoder", "size": 1830}
+                            ]
+                        },
+                        {
+                            "name": "filter",
+                            "children": [
+                                {"name": "FisheyeTreeFilter", "size": 5219},
+                                {"name": "GraphDistanceFilter", "size": 3165},
+                                {"name": "VisibilityFilter", "size": 3509}
+                            ]
+                        },
+                        {"name": "IOperator", "size": 1286},
+                        {
+                            "name": "label",
+                            "children": [
+                                {"name": "Labeler", "size": 9956},
+                                {"name": "RadialLabeler", "size": 3899},
+                                {"name": "StackedAreaLabeler", "size": 3202}
+                            ]
+                        },
+                        {
+                            "name": "layout",
+                            "children": [
+                                {"name": "AxisLayout", "size": 6725},
+                                {"name": "BundledEdgeRouter", "size": 3727},
+                                {"name": "CircleLayout", "size": 9317},
+                                {"name": "CirclePackingLayout", "size": 12003},
+                                {"name": "DendrogramLayout", "size": 4853},
+                                {"name": "ForceDirectedLayout", "size": 8411},
+                                {"name": "IcicleTreeLayout", "size": 4864},
+                                {"name": "IndentedTreeLayout", "size": 3174},
+                                {"name": "Layout", "size": 7881},
+                                {"name": "NodeLinkTreeLayout", "size": 12870},
+                                {"name": "PieLayout", "size": 2728},
+                                {"name": "RadialTreeLayout", "size": 12348},
+                                {"name": "RandomLayout", "size": 870},
+                                {"name": "StackedAreaLayout", "size": 9121},
+                                {"name": "TreeMapLayout", "size": 9191}
+                            ]
+                        },
+                        {"name": "Operator", "size": 2490},
+                        {"name": "OperatorList", "size": 5248},
+                        {"name": "OperatorSequence", "size": 4190},
+                        {"name": "OperatorSwitch", "size": 2581},
+                        {"name": "SortOperator", "size": 2023}
+                    ]
+                },
+                {"name": "Visualization", "size": 16540}
+            ]
+        }
+    ]
+};
+
+var diameter = 900,
+    i = 0,
+    DURATION = 300;
+
+var tree = d3.layout.tree()
+    .size([360, diameter / 2 - 100])
+    .separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
+
+var diagonal = d3.svg.diagonal.radial()
+    .projection(function(d) { return [d.y, d.x / 180 * Math.PI]; });
+
+var zoom = d3.behavior.zoom()
+    .on("zoom", function zoomed() {
+        outterContainer.attr("transform", "translate(" + d3.event.translate[0] + ", " + d3.event.translate[1] + ")scale(" + d3.event.scale + ")");
+    });
+
+var svg = d3.select("body").append("svg")
+        .attr("width", '100%')
+        .attr("height", '100%')
+        .call(zoom)
+        .on("dblclick.zoom", null);
+
+var outterContainer = svg.append("g");
+
+var container = outterContainer.append("g")
+        .attr("transform", "translate(" + diameter / 2 + "," + diameter / 2 + ")")
+
+var nodes, links;
+
+function pad(d) {
+    d.hidden = false;
+    d.children && d.children.forEach(pad);
+}
+
+function draw(root) {
+    nodes = tree.nodes(root);
+    links = tree.links(nodes);
+
+    nodes.forEach(pad);
+
+    var link = container.selectAll(".link").data(links)
+        .enter()
+            .append("path")
+            .attr("class", "link")
+            .attr("d", diagonal);
+
+    var node = container.selectAll(".node").data(nodes)
+        .enter()
+            .append("g")
+                .attr("class", "node")
+                .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; })
+                .on("click", click);
+
+    node.append("circle")
+        .style("fill", function(d) { return d.children ? "lightsteelblue" : "#fff"; })
+        .attr("r", 4.5);
+
+    node.append("text")
+        .attr("dy", ".31em")
+        .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+        .attr("transform", function(d) { return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
+        .text(function(d) { return d.name; });
+}
+
+function hasHiddenParent(d) {
+    if (!d) {
+        return false;
+    } else if (d.hidden) {
+        return true;
+    } else {
+        return hasHiddenParent(d.parent);
+    }
+}
+
+function update(root) {
+    container.selectAll(".node")
+        .transition()
+        .duration(DURATION)
+        .style('opacity', function(d) { return hasHiddenParent(d) || d.hidden ? 0 : 1; });
+
+    container.selectAll(".link")
+        .transition()
+        .duration(DURATION)
+        .style('opacity', function(d) { return hasHiddenParent(d.source) || d.source.hidden || d.target.hidden ? 0 : 1; });
+}
+
+function click(d) {
+    toggleHide(d);
+    d.hidden = !d.hidden;
+    update(flare);
+}
+
+function toggleHide(d) {
+    d.hidden = !d.hidden;
+    d.children && d.children.forEach(toggleHide);
+}
+
+// function click(d) {
+//     d._hidden = !!d._hidden;
+//     toggleHide(d, !d._hidden);
+//     d._hidden = d.hidden;
+//     d.hidden = !d.hidden;
+//     update(flare);
+// }
+
+// function toggleHide(d, val) {
+//     d.hidden = val || !d.hidden;
+//     console.log(d);
+//     d.children && d.children.forEach(function(d2) {
+//         toggleHide(d2, val);
+//     });
+// }
+
+draw(flare);
+
+</script>
