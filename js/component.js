@@ -98,7 +98,7 @@ var MohiniComponentFactory = (function() {
                     .attr('dy',  function(d) { return d.font_dy; })
                     .attr('text-anchor', 'middle')
                     .style('font', self.font_size + 'px ' + (self.ff || 'sans-serif'))
-                    .text(function(d) { return d.name || self.uuid; }),
+                    .text(function(d) { return d.name || ''; }),
 
                 group: group
             };
