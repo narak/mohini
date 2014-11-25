@@ -131,11 +131,6 @@ button:active {
 <script src='js/component.js'></script>
 <script src='js/connector.js'></script>
 <script>
-var comps = [], conns = [],
-    compCount = 9,
-    perRow = 3,
-    distance = 120,
-    conn;
 
 var mohini = new Mohini({
     container: document.getElementById('svg-container'),
@@ -143,35 +138,9 @@ var mohini = new Mohini({
     height: '100%'
 });
 
-
-// for (var i = 0; i < compCount; i++) {
-//     comps.push(new mohini.Component({
-//         w: 50,
-//         h: 50,
-//         x: distance + ((i * distance) - (Math.floor(i / perRow) * distance * perRow)),
-//         y: distance + (Math.floor(i / perRow) * distance),
-//         name: 'Comp ' + i,
-//         render: true
-//     }));
-// }
-
-// for (var j = compCount - 1; j >= 0; j--) {
-//     conn = mohini.connect(comps[8], comps[j]);
-//     if (!conn) continue;
-//     conn.render();
-//     conns.push(conn);
-// }
-
-// function destroy() {
-//     comps.pop().destroy();
-// }
-
-// function ad() {
-//     var inter = window.setInterval(function() {
-//         destroy();
-//         if (!comps.length) window.clearInterval(inter);
-//     }, 0);
-// }
+mohini.Component.setDefaults({
+    draggable: true
+});
 
 var _activeComp;
 mohini.Component.on('click.activate', function(comp) {
@@ -217,6 +186,7 @@ var addComponent = function() {
                 x: -1000,
                 y: -1000,
                 //name: prompt('Name:'),
+                draggable: true,
                 render: true
             });
 
@@ -260,6 +230,7 @@ var awsComp = new mohini.Component({
     y: 100,
     w: 120,
     h: 60,
+    draggable: true,
     name: 'AWS',
     render: true,
     symbol: {

@@ -8,31 +8,11 @@ var MohiniComponentFactory = (function() {
         MOVE: 'move'
     };
 
-    // Filters.
-    var defsContainer = d3.select(document.body).append('svg')
-        .attr('width', 0)
-        .attr('height', 0)
-        .append('defs');
-
-    var filter = defsContainer.append('filter')
-        .attr('id', 'dropshadow')
-        .attr('height', '150%');
-    filter.append('feGaussianBlur')
-            .attr('in', 'SourceAlpha')
-            .attr('stdDeviation', 3); //stdDeviation is how much to blur
-    filter.append('feOffset') //how much to offset
-            .attr('dx', 2)
-            .attr('dy', 2)
-            .attr('result', 'offsetblur');
-    filter.append('feComponentTransfer')
-        .append('feFuncA')
-            .attr('type', 'linear')
-            .attr('slope', 0.2);
-
-    var feMerge = filter.append('feMerge');
-    feMerge.append('feMergeNode'); //this contains the offset blurred image
-    feMerge.append('feMergeNode')
-        .attr('in', 'SourceGraphic');
+    var DEFAULTS = {
+        border_radius: 5,
+        font_size: 10,
+        font_dy: -5
+    };
 
     var MohiniComponentFactory = function MohiniComponentFactory(mohini) {
         if (!(this instanceof MohiniComponentFactory)) {
@@ -66,6 +46,7 @@ var MohiniComponentFactory = (function() {
                 self = this,
                 render = !!data.render;
             delete data.render;
+            self.uuid = uuid;
 
             if (!data.x || !data.y) {
                 var mid = mohini.getMidCoords();
@@ -79,18 +60,12 @@ var MohiniComponentFactory = (function() {
                 data.symbol.y = data.symbol.padding;
             }
 
+            if (!data.font_dx) {
+                data.font_dx = data.w/2;
+            }
+
             // Extend self with defaults and then the input data.
-            extend(self, {
-                uuid: uuid,
-                r: 5,
-                fs: 10,
-                font_dx: data.w/2,
-                font_dy: -5,
-                circle_x: 25,
-                circle_y: 35,
-                cr: 5,
-                name: uuid
-            }, data);
+            extend(self, DEFAULTS, data);
             // Extend pubsub.
             extend(self, new PubSub);
 
@@ -101,17 +76,20 @@ var MohiniComponentFactory = (function() {
                     .attr('uuid', uuid)
                     .attr('class', 'component')
                     .attr('transform', function(d) { return 'translate(' + d.x + ', ' + d.y + ')'; })
-                    .call(factory._drag);
+
+            if (self.draggable) {
+                group.call(factory._drag);
+            }
 
             self.el = {
                 box: group.append('rect')
                     .attr('width', function(d) { return d.w; })
                     .attr('height', function(d) { return d.h; })
-                    .attr('rx', self.r)
+                    .attr('rx', self.border_radius)
                     .style({
                         'stroke-width': 1 + 'px'
                     })
-                    .attr('ry', self.r),
+                    .attr('ry', self.border_radius),
 
                 label: group.append('text')
                     .attr('width', function(d) { return d.w; })
@@ -119,7 +97,7 @@ var MohiniComponentFactory = (function() {
                     .attr('dx',  function(d) { return d.font_dx; })
                     .attr('dy',  function(d) { return d.font_dy; })
                     .attr('text-anchor', 'middle')
-                    .style('font', self.fs + 'px ' + (self.ff || 'sans-serif'))
+                    .style('font', self.font_size + 'px ' + (self.ff || 'sans-serif'))
                     .text(function(d) { return d.name || self.uuid; }),
 
                 group: group
@@ -226,13 +204,43 @@ var MohiniComponentFactory = (function() {
 
         Component.get = function CompGet(uuid) {
             return factory.components[uuid];
-        }
+        };
+
+        Component.setDefaults = function(defs) {
+            extend(DEFAULTS, defs);
+        };
 
         Component.Events = Events;
         // Extend pubsub.
         extend(Component, new PubSub);
         return Component;
     }
+
+    // Filters.
+    var defsContainer = d3.select(document.body).append('svg')
+        .attr('width', 0)
+        .attr('height', 0)
+        .append('defs');
+
+    var filter = defsContainer.append('filter')
+        .attr('id', 'dropshadow')
+        .attr('height', '150%');
+    filter.append('feGaussianBlur')
+            .attr('in', 'SourceAlpha')
+            .attr('stdDeviation', 3); //stdDeviation is how much to blur
+    filter.append('feOffset') //how much to offset
+            .attr('dx', 2)
+            .attr('dy', 2)
+            .attr('result', 'offsetblur');
+    filter.append('feComponentTransfer')
+        .append('feFuncA')
+            .attr('type', 'linear')
+            .attr('slope', 0.2);
+
+    var feMerge = filter.append('feMerge');
+    feMerge.append('feMergeNode'); //this contains the offset blurred image
+    feMerge.append('feMergeNode')
+        .attr('in', 'SourceGraphic');
 
     return MohiniComponentFactory;
 })();
