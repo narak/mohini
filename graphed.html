@@ -202,10 +202,8 @@ var started = false,
         mohini.Component.off('click.addConnector');
 
         mohini.Component.on('click.addConnector', function(component) {
-            if (!started) {
-                mohini.connect(component);
-            } else {
-                mohini.connect(component);
+            mohini.connect(component);
+            if (started) {
                 mohini.Component.off('click.addConnector');
             }
             started = !started;
@@ -261,7 +259,8 @@ var awsComp = new mohini.Component({
     x: 100,
     y: 100,
     w: 120,
-    h: 150,
+    h: 60,
+    name: 'AWS',
     render: true,
     symbol: {
         url: 'images/aws-logo-1024x373.png',
@@ -275,7 +274,8 @@ var chefComp = new mohini.Component({
     x: 200,
     y: 100,
     w: 120,
-    h: 150,
+    h: 60,
+    name: 'Chef',
     render: true,
     symbol: {
         url: 'images/opscode_chef_html_logo.jpg',
@@ -289,7 +289,8 @@ var puppetComp = new mohini.Component({
     x: 100,
     y: 200,
     w: 120,
-    h: 150,
+    h: 60,
+    name: 'Puppet',
     render: true,
     symbol: {
         url: 'images/Puppet-Labs-Logo.png',
@@ -303,7 +304,8 @@ var redisComp = new mohini.Component({
     x: 200,
     y: 200,
     w: 120,
-    h: 150,
+    h: 60,
+    name: 'Redis',
     render: true,
     symbol: {
         url: 'images/Redis_Logo.svg',
