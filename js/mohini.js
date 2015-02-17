@@ -66,7 +66,7 @@ var Mohini = (function() {
         self.container = self.svg.append('g');
 
         // Plugin d3js zoom behaviour.
-        self.svg.call(self._zoom);
+        // self.svg.call(self._zoom);
 
         opts.width && self.svg.attr('width', opts.width);
         opts.height && self.svg.attr('height', opts.height);

@@ -125,7 +125,7 @@ button:active {
 
 <div id="svg-container"></div>
 
-<script src='js/d3.v3.min.js'></script>
+<script src='js/d3.js'></script>
 <script src='js/helpers.js'></script>
 <script src='js/mohini.js'></script>
 <script src='js/component.js'></script>
@@ -228,8 +228,8 @@ d3.select('#add-connector').on('click', function() {
 var awsComp = new mohini.Component({
     x: 100,
     y: 100,
-    w: 120,
-    h: 60,
+    w: 50,
+    h: 50,
     draggable: true,
     name: 'AWS',
     render: true,
@@ -241,40 +241,11 @@ var awsComp = new mohini.Component({
     }
 });
 
-var chefComp = new mohini.Component({
-    x: 200,
-    y: 100,
-    w: 120,
-    h: 60,
-    name: 'Chef',
-    render: true,
-    symbol: {
-        url: 'images/opscode_chef_html_logo.jpg',
-        padding: 10,
-        w: 100,
-        h: 37
-    }
-});
-
-var puppetComp = new mohini.Component({
-    x: 100,
-    y: 200,
-    w: 120,
-    h: 60,
-    render: true,
-    symbol: {
-        url: 'images/Puppet-Labs-Logo.png',
-        padding: 10,
-        w: 100,
-        h: 37
-    }
-});
-
 var redisComp = new mohini.Component({
     x: 200,
     y: 200,
-    w: 120,
-    h: 60,
+    w: 50,
+    h: 50,
     name: 'Redis',
     render: true,
     symbol: {
@@ -284,6 +255,98 @@ var redisComp = new mohini.Component({
         h: 37
     }
 });
+
+var $svg = mohini.getSVGElement()[0][0],
+    $cont = mohini.getContainerElement()[0][0],
+    bb = $svg.getBoundingClientRect(),
+    startDragXY, currentDragXY,
+    translateXY = { x: 0, y: 0 },
+    currentTranslateXY = { x: null, y: null },
+    zoomFactor = 0.02,
+    lastZoomValues = { x: 1, y: 1, z: 1 };
+
+function clientOffset(x, y) {
+    return { x: x - bb.left, y: y - bb.top } ;
+}
+
+function panMouseDown(e) {
+    e.preventDefault();
+    startDragXY = clientOffset(e.clientX, e.clientY)
+    $svg.removeEventListener('mousedown', panMouseDown);
+    $svg.addEventListener('mousemove', panMouseMove);
+    $svg.addEventListener('mouseup', panMouseUp);
+}
+
+function panMouseMove(e) {
+    var currentDragXY = clientOffset(e.clientX, e.clientY);
+    var x = currentTranslateXY.x = translateXY.x + currentDragXY.x - startDragXY.x;
+    var y = currentTranslateXY.y = translateXY.y + currentDragXY.y - startDragXY.y;
+    requestAnimationFrame(function() {
+        $cont.setAttribute('transform', 'translate(' + x + ',' + y + ')');
+    });
+}
+
+function panMouseUp(e) {
+    e.preventDefault();
+    translateXY = {
+        x: currentTranslateXY.x,
+        y: currentTranslateXY.y
+    };
+    $svg.removeEventListener('mousemove', panMouseMove);
+    $svg.removeEventListener('mouseup', panMouseUp);
+    $svg.addEventListener('mousedown', panMouseDown);
+}
+
+var bbox = {
+    width: 1214,
+    height: 386
+};
+var viewbox = [0, 0, 1214, 386];
+var zoom = 1;
+function doZoom(coords, factor) {
+    //transform real coordinates into viewbox coordinates
+    var x =  Number(viewbox[0]) + Number(coords.x / zoom);
+    var y =  Number(viewbox[1]) + Number(coords.y / zoom);
+
+    if (factor < 0) {
+        factor = 0.95;
+    } else {
+        factor = 1.05;
+    }
+
+    var z = ((zoom || 1) * factor) || 1;
+    zoom = z;
+
+    //transform coordinates to new viewbox coordinates
+    viewbox[0] = x - coords.x / zoom;
+    viewbox[1] = y - coords.y / zoom;
+    //zoom viewbox dimensions
+    viewbox[2] = bbox.width / zoom;
+    viewbox[3] = bbox.height / zoom;
+
+    $svg.setAttribute('viewBox', viewbox.join(' '));
+}
+
+function wheel(event) {
+    var delta = 0;
+
+    if (!event) /* For IE. */
+    event = window.event;
+    if (event.wheelDelta) { /* IE/Opera. */
+        delta = event.wheelDelta / 120;
+    } else if (event.detail) { /** Mozilla case. */
+        delta = -event.detail / 3;
+    }
+    if (delta) {
+        doZoom(clientOffset(event.clientX, event.clientY), delta);
+    }
+    if (event.preventDefault) event.preventDefault();
+    event.returnValue = false;
+}
+
+$svg.addEventListener('mousedown', panMouseDown);
+$svg.addEventListener('mousewheel', /*zoomMouseWheel*/wheel);
+
 
 </script>
 </body>
