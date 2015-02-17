@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<meta charset='utf-8'>
+<head>
+<style type="text/css">
+  .Border { fill:none; stroke:blue; stroke-width:1 }
+  .Connect { fill:none; stroke:#888888; stroke-width:2 }
+  .SamplePath { fill:none; stroke:red; stroke-width:3 }
+  .EndPoint { fill:none; stroke:#888888; stroke-width:2 }
+  .CtlPoint { fill:#888888; stroke:none }
+  .AutoCtlPoint { fill:none; stroke:blue; stroke-width:4 }
+  .Label { font-size:22; font-family:Verdana }
+</style>
+</style>
+<body>
+<svg width="800px" height="600px" viewBox="0 0 500 400"
+     xmlns="http://www.w3.org/2000/svg" version="1.1">
+
+  <path class="SamplePath" d="M100,100 c100,0 100,200 200,200" opacity="0" />
+
+
+  <path d="M200,200 a50,50 0 1,0 50,-50"
+        stroke="green" stroke-width="3" fill="none" />
+
+  <path d="M200,200 a55,55 0 1,0 50,-50"
+        stroke="blue" stroke-width="3" fill="none" />
+
+  <circle class="EndPoint" cx="200" cy="200" r="5" />
+  <circle class="EndPoint" cx="350" cy="350" r="5" />
+  <circle class="EndPoint" cx="350" cy="-350" r="5" />
+
+
+</svg>
+</body>
+</html>

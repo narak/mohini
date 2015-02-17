@@ -144,6 +144,14 @@ var Mohini = (function() {
         return this.transform.apply(this, [w/2, h/2]);
     };
 
+    Mohini.prototype.getSVGElement = function() {
+        return this.svg;
+    };
+
+    Mohini.prototype.getContainerElement = function() {
+        return this.container;
+    };
+
     extend(Mohini, new PubSub);
     return Mohini;
 })();
